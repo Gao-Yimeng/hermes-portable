@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""
+r"""
 fix_shims.py - self-heal uv trampoline entry points for Hermes Portable.
 
 Why this exists

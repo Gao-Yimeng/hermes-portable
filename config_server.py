@@ -1303,7 +1303,7 @@ HTML_PAGE = r"""<!DOCTYPE html>
     <div id="hermesStatus" style="margin-top:12px;display:none;align-items:center;justify-content:center;gap:8px;font-family:var(--font-mono);font-size:11px;color:var(--fg-muted);">
       <span id="statusDot" style="width:8px;height:8px;border-radius:50%;background:#666;display:inline-block;"></span>
       <span id="statusText">检测中...</span>
-      <a id="webuiLink" href="#" target="_blank" style="display:none;color:var(--emerald);margin-left:8px;">打开 Web UI →</a>
+      <a id="webuiLink" href="#" target="_blank" rel="noopener" style="display:none;color:var(--emerald);margin-left:8px;">打开 Web UI →</a>
     </div>
   </div>
 
@@ -1829,7 +1829,7 @@ function _setLiveWebui(url) {
   if (!line) return;
   if (url) {
     line.style.display = '';
-    line.innerHTML = '  · web ui: <a href="' + url + '" target="_blank">' + url + '</a>';
+    line.innerHTML = '  · web ui: <a href="' + url + '" target="_blank" rel="noopener">' + url + '</a>';
   } else {
     line.style.display = 'none';
   }
