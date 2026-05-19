@@ -19,13 +19,18 @@ from pathlib import Path
 from datetime import datetime
 
 SCRIPT_DIR = Path(__file__).parent.resolve()
-HERMES_DIR = SCRIPT_DIR / "hermes-agent"
+# When running from lib/, the portable root is one level up.
+if SCRIPT_DIR.name == "lib":
+    PORTABLE_ROOT = SCRIPT_DIR.parent
+else:
+    PORTABLE_ROOT = SCRIPT_DIR
+HERMES_DIR = PORTABLE_ROOT / "hermes-agent"
 
 
 def _uv_bin():
     """Locate the portable uv binary shipped next to update.py."""
     name = "uv.exe" if sys.platform == "win32" else "uv"
-    p = SCRIPT_DIR / name
+    p = PORTABLE_ROOT / name
     return p if p.exists() else None
 
 
@@ -39,12 +44,12 @@ def _detect_venv_dir():
     elif arch in ("aarch64", "arm64"): arch = "arm64"
     label = {"Darwin": "macos", "Linux": "linux", "Windows": "windows"}.get(
         system, system.lower()) + f"-{arch}"
-    for candidate in (SCRIPT_DIR / f"venv-{label}", SCRIPT_DIR / "venv"):
+    for candidate in (PORTABLE_ROOT / f"venv-{label}", PORTABLE_ROOT / "venv"):
         py = (candidate / "Scripts" / "python.exe") if system == "Windows" \
             else (candidate / "bin" / "python")
         if py.exists():
             return candidate
-    return SCRIPT_DIR / "venv"
+    return PORTABLE_ROOT / "venv"
 
 
 VENV_DIR = _detect_venv_dir()
@@ -82,7 +87,7 @@ def get_local_version():
         r = subprocess.run(
             [str(hermes_bin), "--version"],
             capture_output=True, text=True, timeout=10,
-            env={**os.environ, "HERMES_HOME": str(SCRIPT_DIR / "data")},
+            env={**os.environ, "HERMES_HOME": str(PORTABLE_ROOT / "data")},
         )
         # Parse "Hermes Agent v0.9.0 (2026.4.13)" from output
         for line in r.stdout.splitlines():
@@ -214,7 +219,7 @@ def do_update():
 
     # Backup before update
     print(f"\n{C}[0/3] Creating backup...{X}")
-    backup_dir = SCRIPT_DIR / "data" / ".update_backup"
+    backup_dir = PORTABLE_ROOT / "data" / ".update_backup"
     backup_dir.mkdir(parents=True, exist_ok=True)
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     backup_path = backup_dir / f"pre_update_{ts}"
@@ -265,7 +270,7 @@ def do_update():
     # to another drive / USB / machine.
     uv = _uv_bin()
     if uv is None:
-        print(f"{R}✗ Could not find portable uv at {SCRIPT_DIR}/uv{X}")
+        print(f"{R}✗ Could not find portable uv at {PORTABLE_ROOT}/uv{X}")
         print(f"  A fresh rebuild via build.py will restore it.")
         return False
 

@@ -131,11 +131,11 @@ if [ -n "$MISMATCH" ]; then
   # these helpers + build.py. Universal zips strip build.py to save
   # space, so they fall back to the download path.
   case "$OS" in
-    Darwin) REBUILD_HELPER="$HERE/mac-rebuild.sh" ;;
-    Linux)  REBUILD_HELPER="$HERE/linux-rebuild.sh" ;;
+    Darwin) REBUILD_HELPER="$HERE/tools/mac-rebuild.sh" ;;
+    Linux)  REBUILD_HELPER="$HERE/tools/linux-rebuild.sh" ;;
     *)      REBUILD_HELPER="" ;;
   esac
-  if [ -n "$REBUILD_HELPER" ] && [ -f "$REBUILD_HELPER" ] && [ -f "$HERE/build.py" ]; then
+  if [ -n "$REBUILD_HELPER" ] && [ -f "$REBUILD_HELPER" ] && [ -f "$HERE/tools/build.py" ]; then
     echo "  Recommended fix (rebuilds the runtime in place, ~2-3 min):" >&2
     echo "    bash \"$REBUILD_HELPER\"" >&2
     echo "" >&2
@@ -153,7 +153,7 @@ if [ -n "$MISMATCH" ]; then
     echo "    1. Download HermesPortable-Universal.zip (ships all arches):" >&2
     echo "         https://github.com/yuluyangguang1/hermes-portable/releases" >&2
     echo "    2. Or download the $OS zip built for $ARCH." >&2
-    echo "    3. Or grab the source repo and run:  python3 build.py" >&2
+    echo "    3. Or grab the source repo and run:  python3 tools/build.py" >&2
   fi
   echo "" >&2
   exit 1
@@ -210,7 +210,7 @@ cd "$HERE"
 # folder moves. fix_shims.py rewrites them to the local python.
 # Harmless (no-op) when shebangs are already `/bin/sh`-wrapped
 # relocatable stubs, which is the common case on macOS/Linux.
-if [ -f "$HERE/fix_shims.py" ]; then
+if [ -f "$HERE/lib/fix_shims.py" ]; then
   PORTABLE_PY=""
   # Prefer the real python-build-standalone binary (never a trampoline).
   for cand in "$PYTHON_DIR"/*/bin/python3.12 \
@@ -219,7 +219,7 @@ if [ -f "$HERE/fix_shims.py" ]; then
     if [ -x "$cand" ]; then PORTABLE_PY="$cand"; break; fi
   done
   if [ -n "$PORTABLE_PY" ]; then
-    "$PORTABLE_PY" "$HERE/fix_shims.py" 2>/dev/null || true
+    "$PORTABLE_PY" "$HERE/lib/fix_shims.py" 2>/dev/null || true
   fi
 fi
 
@@ -322,7 +322,7 @@ if [ "${1-}" = "--config" ] || [ "$HAS_KEY" = "false" ]; then
   # open a second tab (see config_server.main).
   export HERMES_BROWSER_OPENED=1
   # Run in foreground; trap handlers still fire on exit.
-  "$VENV_DIR/bin/python" "$HERE/config_server.py"
+  "$VENV_DIR/bin/python" "$HERE/lib/config_server.py"
   exit $?
 fi
 
@@ -331,7 +331,7 @@ CONFIG_PID=""
 export HERMES_BROWSER_OPENED=1
 
 start_config_server() {
-  "$VENV_DIR/bin/python" "$HERE/config_server.py" >/dev/null 2>&1 &
+  "$VENV_DIR/bin/python" "$HERE/lib/config_server.py" >/dev/null 2>&1 &
   CONFIG_PID=$!
 }
 

@@ -5,7 +5,13 @@
 # ═══════════════════════════════════════════════════════════════
 set -eu
 
-HERE="$(cd "$(dirname "$0")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# When running from lib/, the portable root is one level up.
+if [ "$(basename "$SCRIPT_DIR")" = "lib" ]; then
+    HERE="$(cd "$SCRIPT_DIR/.." && pwd)"
+else
+    HERE="$SCRIPT_DIR"
+fi
 
 # Detect the platform label the launchers and build.py use.
 OS="$(uname -s)"
@@ -51,4 +57,4 @@ if [ -z "$PY" ]; then
 fi
 
 export HERMES_HOME="$HERE/data"
-exec "$PY" "$HERE/update.py" "${1:-status}"
+exec "$PY" "$SCRIPT_DIR/update.py" "${1:-status}"

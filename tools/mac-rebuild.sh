@@ -19,7 +19,8 @@
 # ═══════════════════════════════════════════════════════════════
 set -eu
 
-HERE="$(cd "$(dirname "$0")" && pwd)"
+TOOLS_DIR="$(cd "$(dirname "$0")" && pwd)"
+HERE="$(cd "$TOOLS_DIR/.." && pwd)"
 
 echo
 echo "  Hermes Portable — macOS Rebuild"
@@ -48,7 +49,7 @@ echo "  Layout    : $LAYOUT"
 echo
 
 # ── Pre-flight checks ──
-if [ ! -f "$HERE/build.py" ]; then
+if [ ! -f "$TOOLS_DIR/build.py" ]; then
   echo "  [ERROR] build.py not found next to this script." >&2
   echo "  This helper must live at the root of a HermesPortable/ folder." >&2
   exit 1

@@ -119,11 +119,11 @@ if [ -n "$MISMATCH" ]; then
   echo "  rebuild the runtime on THIS Mac. Your data/ and API keys survive." >&2
   echo "" >&2
   # Prefer the in-place rebuild if the helper is available (platform-only
-  # zips ship mac-rebuild.sh + build.py). Universal zips strip build.py
+  # zips ship tools/mac-rebuild.sh + tools/build.py). Universal zips strip build.py
   # to save space, so they fall back to the download path.
-  if [ -f "$HERE/mac-rebuild.sh" ] && [ -f "$HERE/build.py" ]; then
+  if [ -f "$HERE/tools/mac-rebuild.sh" ] && [ -f "$HERE/tools/build.py" ]; then
     echo "  Recommended fix (rebuilds the runtime on this Mac, ~2-3 min):" >&2
-    echo "    bash \"$HERE/mac-rebuild.sh\"" >&2
+    echo "    bash \"$HERE/tools/mac-rebuild.sh\"" >&2
     echo "" >&2
     echo "  Requires Xcode Command Line Tools (python3 + git + curl)." >&2
     echo "  If you don't have them:  xcode-select --install" >&2
@@ -134,7 +134,7 @@ if [ -n "$MISMATCH" ]; then
     echo "    1. Download HermesPortable-Universal.zip (ships both Mac arches):" >&2
     echo "         https://github.com/yuluyangguang1/hermes-portable/releases" >&2
     echo "    2. Or download the macOS zip built for $ARCH." >&2
-    echo "    3. Or grab the source repo and run:  python3 build.py" >&2
+    echo "    3. Or grab the source repo and run:  python3 tools/build.py" >&2
   fi
   echo "" >&2
   exit 1
@@ -202,7 +202,7 @@ fi
 # python. Harmless (no-op) when shebangs are already `/bin/sh`-
 # wrapped relocatable stubs, which is the common case on macOS.
 # Kept in sync with Hermes.sh — previously only Hermes.sh ran this.
-if [ -f "$HERE/fix_shims.py" ]; then
+if [ -f "$HERE/lib/fix_shims.py" ]; then
   PORTABLE_PY=""
   # Prefer the real python-build-standalone binary (never a trampoline).
   for cand in "$PYTHON_DIR"/*/bin/python3.12 \
@@ -211,7 +211,7 @@ if [ -f "$HERE/fix_shims.py" ]; then
     if [ -x "$cand" ]; then PORTABLE_PY="$cand"; break; fi
   done
   if [ -n "$PORTABLE_PY" ]; then
-    "$PORTABLE_PY" "$HERE/fix_shims.py" 2>/dev/null || true
+    "$PORTABLE_PY" "$HERE/lib/fix_shims.py" 2>/dev/null || true
   fi
 fi
 
@@ -320,7 +320,7 @@ if [ "${1-}" = "--config" ] || [ "$HAS_KEY" = "false" ]; then
   # open a second tab (see config_server.main).
   export HERMES_BROWSER_OPENED=1
   # Run in foreground; trap handlers still fire on exit.
-  "$VENV_DIR/bin/python" "$HERE/config_server.py"
+  "$VENV_DIR/bin/python" "$HERE/lib/config_server.py"
   exit $?
 fi
 
@@ -329,7 +329,7 @@ CONFIG_PID=""
 export HERMES_BROWSER_OPENED=1
 
 start_config_server() {
-  "$VENV_DIR/bin/python" "$HERE/config_server.py" >/dev/null 2>&1 &
+  "$VENV_DIR/bin/python" "$HERE/lib/config_server.py" >/dev/null 2>&1 &
   CONFIG_PID=$!
 }
 

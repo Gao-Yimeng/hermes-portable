@@ -13,8 +13,13 @@ from pathlib import Path
 from datetime import datetime
 
 SCRIPT_DIR = Path(__file__).parent.resolve()
+# When running from lib/, the portable root is one level up.
+if SCRIPT_DIR.name == "lib":
+    PORTABLE_ROOT = SCRIPT_DIR.parent
+else:
+    PORTABLE_ROOT = SCRIPT_DIR
 # Portable data dir (set by the launchers via HERMES_HOME=$HERE/data).
-PORTABLE_SESSIONS = SCRIPT_DIR / "data" / "sessions"
+PORTABLE_SESSIONS = PORTABLE_ROOT / "data" / "sessions"
 # System-wide data dir (used when hermes was started without the launcher).
 SYSTEM_SESSIONS = Path.home() / ".hermes" / "sessions"
 

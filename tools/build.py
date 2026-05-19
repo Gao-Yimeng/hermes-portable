@@ -497,45 +497,48 @@ def step_webui(ctx):
 
 # Files that must be *copied verbatim* from the repo into the portable folder.
 # This is the single source of truth — no more inlined bat/sh strings.
+# Paths are relative to the repo root. Directory structure is preserved
+# in the dist (e.g. "lib/config_server.py" → ROOT/lib/config_server.py).
 _STATIC_ASSETS = [
-    "config_server.py",
-    "chat_viewer.py",
-    "update.py",
-    "update.sh",
+    # lib/ — runtime internals (referenced by launchers)
+    "lib/config_server.py",
+    "lib/chat_viewer.py",
+    "lib/update.py",
+    "lib/update.sh",
+    "lib/fix_shims.py",
+    # Root — user-facing docs and assets
     "guide.html",
     "favicon.svg",
     "HermesPortable使用说明.html",
-    # Self-heal script — rewrites broken uv trampoline Python paths
-    # on first launch. Critical for Windows release zips: see its
-    # docstring. Harmless on macOS/Linux.
-    "fix_shims.py",
     # Launchers
     "Hermes.command",
     "Hermes.sh",
     "Hermes.bat",
     "Hermes-WSL.bat",
-    # Rebuild helpers — shipped so a user who carried a macOS-built zip
-    # onto a Linux box can rebuild the runtime without re-downloading.
-    "build.py",
-    "linux-rebuild.sh",
+    # tools/ — rebuild helpers shipped so a user who carried a macOS-built
+    # zip onto a Linux box can rebuild the runtime without re-downloading.
+    "tools/build.py",
+    "tools/linux-rebuild.sh",
+    "tools/mac-rebuild.sh",
 ]
 
 
 def step_launchers(ctx):
     ROOT = ctx["ROOT"]
-    repo = Path(__file__).parent
+    repo = Path(__file__).parent.parent  # tools/ -> repo root
     for fname in _STATIC_ASSETS:
         src = repo / fname
         if not src.exists():
             warn(f"missing in repo: {fname}")
             continue
         dst = ROOT / fname
+        dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src, dst)
         # executable bits for unix launchers / scripts
         if fname.endswith((".sh", ".command")):
             try: dst.chmod(0o755)
             except Exception: pass
-    ok("Launchers copied from repo")
+    ok("Launchers + lib/ + tools/ copied from repo")
 
 
 def step_cleanup(ctx):
@@ -644,7 +647,7 @@ def step_readme(ctx):
         "------\n"
         "  Open the config panel → bottom right → Check for Updates.\n"
         "  Or from a terminal:\n"
-        "    python update.py update\n",
+        "    python lib/update.py update\n",
         encoding="utf-8",
     )
     ok("README.txt written")
@@ -693,7 +696,7 @@ def main():
         if ROOT.name != "HermesPortable":
             ROOT = ROOT / "HermesPortable"
     else:
-        ROOT = Path(__file__).parent / "dist" / "HermesPortable"
+        ROOT = Path(__file__).parent.parent / "dist" / "HermesPortable"
     ROOT.mkdir(parents=True, exist_ok=True)
 
     # Platform-suffixed dir names for universal layout

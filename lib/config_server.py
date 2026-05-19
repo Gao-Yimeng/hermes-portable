@@ -14,7 +14,13 @@ from http.server import HTTPServer, ThreadingHTTPServer, SimpleHTTPRequestHandle
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).parent.resolve()
-DATA_DIR = SCRIPT_DIR / "data"
+# When running from lib/, the portable root is one level up.
+# When running from root (legacy), SCRIPT_DIR is already the root.
+if SCRIPT_DIR.name == "lib":
+    PORTABLE_ROOT = SCRIPT_DIR.parent
+else:
+    PORTABLE_ROOT = SCRIPT_DIR
+DATA_DIR = PORTABLE_ROOT / "data"
 PORTABLE_REPO = "yuluyangguang1/hermes-portable"
 
 
@@ -39,14 +45,14 @@ def _detect_venv_dir():
     else:
         label = f"{system.lower()}-{arch}"
 
-    for candidate in (SCRIPT_DIR / f"venv-{label}", SCRIPT_DIR / "venv"):
+    for candidate in (PORTABLE_ROOT / f"venv-{label}", PORTABLE_ROOT / "venv"):
         py = (candidate / "Scripts" / "python.exe") if system == "Windows" \
             else (candidate / "bin" / "python")
         if py.exists():
             return candidate
     # Fallback: return the single-platform default even if missing,
     # so downstream error messages stay informative.
-    return SCRIPT_DIR / "venv"
+    return PORTABLE_ROOT / "venv"
 
 
 VENV_DIR = _detect_venv_dir()
@@ -2077,7 +2083,7 @@ class ConfigHandler(SimpleHTTPRequestHandler):
         self.wfile.write(page.encode())
 
     def _serve_favicon(self):
-        favicon_path = SCRIPT_DIR / "favicon.svg"
+        favicon_path = PORTABLE_ROOT / "favicon.svg"
         if favicon_path.exists():
             self.send_response(200)
             self.send_header("Content-Type", "image/svg+xml")
@@ -2133,7 +2139,7 @@ class ConfigHandler(SimpleHTTPRequestHandler):
         except Exception as e:
             remote = {"error": str(e)}
         # Check if git-based
-        has_git = (SCRIPT_DIR / "hermes-agent" / ".git").exists()
+        has_git = (PORTABLE_ROOT / "hermes-agent" / ".git").exists()
 
         # Also check portable releases from GitHub
         portable_update = {}
@@ -2155,7 +2161,7 @@ class ConfigHandler(SimpleHTTPRequestHandler):
 
         # Determine if portable update is available
         current_tag = ""
-        version_file = SCRIPT_DIR / "VERSION"
+        version_file = PORTABLE_ROOT / "VERSION"
         if version_file.exists():
             current_tag = version_file.read_text().strip()
         portable_is_newer = (
@@ -2187,16 +2193,16 @@ class ConfigHandler(SimpleHTTPRequestHandler):
         socket.setdefaulttimeout(60)
         try:
 
-            update_script = SCRIPT_DIR / "update.py"
-            has_git = (SCRIPT_DIR / "hermes-agent" / ".git").exists()
+            update_script = PORTABLE_ROOT / "lib" / "update.py"
+            has_git = (PORTABLE_ROOT / "hermes-agent" / ".git").exists()
 
             # Check if SCRIPT_DIR is writable (some USB mounts are read-only)
             try:
-                test_file = SCRIPT_DIR / ".write_test"
+                test_file = PORTABLE_ROOT / ".write_test"
                 test_file.touch()
                 test_file.unlink()
             except (OSError, PermissionError) as e:
-                print(f"Update failed: SCRIPT_DIR is not writable ({e})", file=sys.stderr)
+                print(f"Update failed: PORTABLE_ROOT is not writable ({e})", file=sys.stderr)
                 return
 
             # If git-based, use the existing update.py
@@ -2239,7 +2245,7 @@ class ConfigHandler(SimpleHTTPRequestHandler):
                     for item in src_dir.iterdir():
                         if any(item.name.startswith(s) for s in skip_prefixes):
                             continue
-                        dest = SCRIPT_DIR / item.name
+                        dest = PORTABLE_ROOT / item.name
                         if item.is_dir():
                             if dest.exists():
                                 # 保留用户在该目录下添加的文件
@@ -2270,7 +2276,7 @@ class ConfigHandler(SimpleHTTPRequestHandler):
                     # Update VERSION file
                     new_tag = release.get("tag_name", "").lstrip("v")
                     if new_tag:
-                        (SCRIPT_DIR / "VERSION").write_text(new_tag)
+                        (PORTABLE_ROOT / "VERSION").write_text(new_tag)
                     return
                 except Exception:
                     pass
@@ -2294,7 +2300,7 @@ class ConfigHandler(SimpleHTTPRequestHandler):
             # completion instead of relying on us returning.
             try:
                 subprocess.run([str(py), str(update_script), "update"],
-                               cwd=str(SCRIPT_DIR))
+                               cwd=str(PORTABLE_ROOT))
             except Exception:
                 pass
 
@@ -2730,7 +2736,7 @@ class ConfigHandler(SimpleHTTPRequestHandler):
                 # script sees the paths as its own argv[0]'s dirname,
                 # which bypasses all escaping concerns — even a path
                 # containing literal double quotes survives unharmed.
-                sandbox = SCRIPT_DIR / "_home"
+                sandbox = PORTABLE_ROOT / "_home"
                 sandbox.mkdir(exist_ok=True)
                 driver_text = (
                     "#!/bin/bash\n"
@@ -2740,7 +2746,7 @@ class ConfigHandler(SimpleHTTPRequestHandler):
                     'cd "$HERE"\n'
                     'export HOME="$HERE/_home"\n'
                     'export HERMES_HOME="$HERE/data"\n'
-                    'exec "$HERE/' + hermes_bin.relative_to(SCRIPT_DIR).as_posix() + '" "$@"\n'
+                    'exec "$HERE/' + hermes_bin.relative_to(PORTABLE_ROOT).as_posix() + '" "$@"\n'
                 )
                 # Put the driver inside the sandbox so Terminal doesn't
                 # leave a stray file on the user's real home. A fixed
@@ -2772,22 +2778,22 @@ class ConfigHandler(SimpleHTTPRequestHandler):
                     # node, and the portable python. Also force UTF-8 so
                     # Chinese output doesn't blow up in the new console.
                     scripts = VENV_DIR / "Scripts"
-                    node_dir = SCRIPT_DIR / "node-windows-x64"
+                    node_dir = PORTABLE_ROOT / "node-windows-x64"
                     if not node_dir.exists():
-                        node_dir = SCRIPT_DIR / "node"
-                    python_dir = SCRIPT_DIR / "python-windows-x64"
+                        node_dir = PORTABLE_ROOT / "node"
+                    python_dir = PORTABLE_ROOT / "python-windows-x64"
                     if not python_dir.exists():
-                        python_dir = SCRIPT_DIR / "python"
+                        python_dir = PORTABLE_ROOT / "python"
                     path_parts = [str(scripts), str(node_dir), str(python_dir),
                                   env.get("PATH", "")]
                     env["PATH"] = os.pathsep.join(p for p in path_parts if p)
                     env["PYTHONIOENCODING"] = "utf-8"
                     env["PYTHONUTF8"] = "1"
                     # Launch in a new console window (like macOS gets its own Terminal)
-                    subprocess.Popen([str(hermes_bin)], env=env, cwd=str(SCRIPT_DIR),
+                    subprocess.Popen([str(hermes_bin)], env=env, cwd=str(PORTABLE_ROOT),
                                      creationflags=subprocess.CREATE_NEW_CONSOLE)
                 else:
-                    subprocess.Popen([str(hermes_bin)], env=env, cwd=str(SCRIPT_DIR))
+                    subprocess.Popen([str(hermes_bin)], env=env, cwd=str(PORTABLE_ROOT))
 
     def log_message(self, format, *args):
         pass

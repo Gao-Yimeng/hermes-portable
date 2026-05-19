@@ -74,7 +74,7 @@ jobs:
       - name: Build
         # Single entry-point on all platforms.
         shell: bash
-        run: python build.py
+        run: python tools/build.py
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -121,8 +121,8 @@ jobs:
               # from the filesystem, so once we chmod these, macOS
               # Archive Utility unpacks them with mode 0755 intact.
               for f in "$p"/Hermes.command "$p"/Hermes.sh \
-                       "$p"/update.sh "$p"/linux-rebuild.sh \
-                       "$p"/uv; do
+                       "$p"/lib/update.sh "$p"/tools/linux-rebuild.sh \
+                       "$p"/tools/mac-rebuild.sh "$p"/uv; do
                 [ -f "$f" ] && chmod +x "$f"
               done
               # Also: venv bin-scripts and the portable python binaries

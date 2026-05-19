@@ -138,7 +138,7 @@ rem  Inside WSL, HP_HERE and HP_VENV are already populated via WSLENV.
 rem  The only strings bash receives through cmd are the literal script
 rem  body below (ASCII, no variable interpolation of untrusted data)
 rem  and %*. $HP_HERE / $HP_VENV resolve purely inside bash.
-wsl bash -c "cd \"$HP_HERE\" && export HOME=\"$HP_HERE/_home\" HERMES_HOME=\"$HP_HERE/data\" && exec \"$HP_VENV/bin/python\" \"$HP_HERE/config_server.py\""
+wsl bash -c "cd \"$HP_HERE\" && export HOME=\"$HP_HERE/_home\" HERMES_HOME=\"$HP_HERE/data\" && exec \"$HP_VENV/bin/python\" \"$HP_HERE/lib/config_server.py\""
 set "EXITCODE=%errorlevel%"
 goto :done
 

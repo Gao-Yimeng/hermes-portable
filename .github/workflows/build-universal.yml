@@ -42,7 +42,7 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: '3.12' }
       - name: Build
-        run: python3 build.py --layout universal
+        run: python3 tools/build.py --layout universal
       - name: Upload shared base (launchers, data, hermes-agent, uv)
         uses: actions/upload-artifact@v4
         with:
@@ -74,7 +74,7 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: '3.12' }
       - name: Build
-        run: python3 build.py --layout universal
+        run: python3 tools/build.py --layout universal
       - name: Upload macOS x64 venv/python/node
         uses: actions/upload-artifact@v4
         with:
@@ -98,7 +98,7 @@ jobs:
       - name: Install system deps
         run: sudo apt-get update && sudo apt-get install -y git curl
       - name: Build
-        run: python3 build.py --layout universal
+        run: python3 tools/build.py --layout universal
       - name: Upload Linux x64 venv/python/node
         uses: actions/upload-artifact@v4
         with:
@@ -122,7 +122,7 @@ jobs:
       - name: Install system deps
         run: sudo apt-get update && sudo apt-get install -y git curl
       - name: Build
-        run: python3 build.py --layout universal
+        run: python3 tools/build.py --layout universal
       - name: Upload Linux arm64 venv/python/node
         uses: actions/upload-artifact@v4
         with:
@@ -145,7 +145,7 @@ jobs:
         with: { python-version: '3.12' }
       - name: Build
         shell: bash
-        run: python build.py --layout universal
+        run: python tools/build.py --layout universal
       - name: Upload Windows x64 venv/python/node
         uses: actions/upload-artifact@v4
         with:
@@ -198,8 +198,8 @@ jobs:
           # double-click Hermes.command with "您没有权限执行". Fix it
           # here on the merge runner, right before zipping.
           for f in HermesPortable/Hermes.command HermesPortable/Hermes.sh \
-                   HermesPortable/update.sh HermesPortable/linux-rebuild.sh \
-                   HermesPortable/uv; do
+                   HermesPortable/lib/update.sh HermesPortable/tools/linux-rebuild.sh \
+                   HermesPortable/tools/mac-rebuild.sh HermesPortable/uv; do
             [ -f "$f" ] && chmod +x "$f"
           done
           for bindir in HermesPortable/venv-*/bin \

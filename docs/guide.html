@@ -353,8 +353,8 @@ a:hover{text-decoration:underline}
 ├── <span class="cmd">python/</span>             <span class="comment"># Python 独立运行时（勿删）</span>
 ├── <span class="cmd">venv/</span>               <span class="comment"># 虚拟环境 + 依赖（勿删）</span>
 ├── <span class="cmd">hermes-agent/</span>        <span class="comment"># Hermes 源码（勿删）</span>
-├── <span class="cmd">config_server.py</span>    <span class="comment"># 配置面板服务</span>
-├── <span class="cmd">update.py</span>           <span class="comment"># 自动更新模块</span>
+├── <span class="cmd">lib/config_server.py</span>    <span class="comment"># 配置面板服务</span>
+├── <span class="cmd">lib/update.py</span>           <span class="comment"># 自动更新模块</span>
 ├── <span class="cmd">build_windows.py</span>    <span class="comment"># Windows 构建脚本</span>
 └── <span class="cmd">data/</span>               <span class="comment"># 用户数据（重要！记得备份）</span>
     ├── <span class="cmd">.env</span>            <span class="comment"># API Keys ← 唯一需要编辑的文件</span>
@@ -387,8 +387,8 @@ python build_windows.py
 <span class="comment"># 双击 Hermes.bat 即可启动</span></code></pre>
 
   <h3>在 macOS / Linux 上构建</h3>
-  <pre><code>python3 build.py                    <span class="comment"># 输出到 dist/HermesPortable/</span>
-python3 build.py /Volumes/MyUSB     <span class="comment"># 直接输出到U盘</span></code></pre>
+  <pre><code>python3 tools/build.py                    <span class="comment"># 输出到 dist/HermesPortable/</span>
+python3 tools/build.py /Volumes/MyUSB     <span class="comment"># 直接输出到U盘</span></code></pre>
 
   <div class="callout warn">
     <p><strong>⚠️ 注意：</strong>Python 虚拟环境和依赖是平台特定的。macOS 构建的产物只能在 macOS 上运行。Windows 用户需要在 Windows 机器上运行 <code>build_windows.py</code>。</p>

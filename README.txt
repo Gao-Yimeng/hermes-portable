@@ -38,7 +38,7 @@ Windows notes
 macOS notes
 -----------
   • GitHub CI builds on macos-latest, which is ARM64 (Apple Silicon).
-    Intel Mac users should either build from source (`python3 build.py`)
+    Intel Mac users should either build from source (`python3 tools/build.py`)
     or use the Universal zip once both arch builds land in it.
 
 Linux notes
@@ -46,7 +46,7 @@ Linux notes
   • Requires glibc ≥ 2.28 (Ubuntu 20.04+, Debian 11+, RHEL 8+).
     Node.js 24's prebuilt binaries won't run on older glibc.
   • If `Hermes.sh` fails with `GLIBC_2.xx not found`, run
-    `./linux-rebuild.sh` on the target machine to rebuild the runtime.
+    `bash tools/linux-rebuild.sh` on the target machine to rebuild the runtime.
 
 macOS notes
 -----------
@@ -74,11 +74,11 @@ Update
   Open the config panel (any launcher with --config, or first run) and
   click "Check for Updates" in the bottom right.
   Or from a terminal:
-      python update.py update
+      python lib/update.py update
 
 Building from source
 --------------------
-  python3 build.py                     (platform zip for current OS)
-  python3 build.py --layout universal  (per-platform-suffixed dirs, for Universal)
+  python3 tools/build.py                     (platform zip for current OS)
+  python3 tools/build.py --layout universal  (per-platform-suffixed dirs, for Universal)
 
 License: MIT

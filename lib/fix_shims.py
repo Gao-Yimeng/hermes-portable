@@ -467,6 +467,9 @@ def fix_pyvenv_cfg(venv: Path, python: Path) -> bool:
 # ─── entry ────────────────────────────────────────────────────────────
 def main() -> int:
     here = Path(__file__).resolve().parent
+    # When running from lib/, the portable root is one level up.
+    if here.name == "lib":
+        here = here.parent
     venv = find_venv(here)
     base_python = find_base_python(here)
     venv_python = find_venv_python(venv)
