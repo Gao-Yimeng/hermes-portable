@@ -507,7 +507,6 @@ _STATIC_ASSETS = [
     "lib/update.sh",
     "lib/fix_shims.py",
     # Root — user-facing docs and assets
-    "guide.html",
     "favicon.svg",
     "HermesPortable使用说明.html",
     # Launchers
