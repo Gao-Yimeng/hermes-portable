@@ -1755,7 +1755,7 @@ HTML_PAGE = r"""<!DOCTYPE html>
 </style>
 </head>
 <body>
-<div class="bg-i" aria-hidden="true"><img alt="" src="https://yu.ai/egret-ink.jpg" width="1920" height="1080" loading="lazy" decoding="async" onerror="this.parentNode.style.display='none'"></div>
+<div class="bg-i" aria-hidden="true"><img alt="" src="https://yuai-r.cn/egret-ink.jpg" width="1920" height="1080" loading="lazy" decoding="async" onerror="this.parentNode.style.display='none'"></div>
 <div class="bg-n" aria-hidden="true"></div>
 <div class="bg-g" aria-hidden="true"></div>
 <div class="onboarding" id="onboarding" style="display:none">
@@ -1786,12 +1786,12 @@ HTML_PAGE = r"""<!DOCTYPE html>
 <div class="y-page">
 
 <nav class="y-row nav-row" aria-label="Primary">
-  <div class="y-cell s1"><a href="https://yu.ai/" class="y-title" style="text-decoration:none;color:inherit">yu.ai</a></div>
+  <div class="y-cell s1"><a href="https://yuai-r.cn/" class="y-title" style="text-decoration:none;color:inherit">yu.ai</a></div>
   <div class="y-cell s2" style="padding:0">
-    <a class="y-nav-link" href="https://yu.ai/"><span class="y-label">hermes config <span class="y-blink"></span></span></a>
+    <a class="y-nav-link" href="https://yuai-r.cn/"><span class="y-label">hermes config <span class="y-blink"></span></span></a>
   </div>
   <div class="y-cell s1" style="padding:0">
-    <a class="y-nav-link" href="https://yu.ai/#products"><span class="y-label">products <span class="y-blink"></span></span></a>
+    <a class="y-nav-link" href="https://yuai-r.cn/#products"><span class="y-label">products <span class="y-blink"></span></span></a>
   </div>
   <div class="y-cell" style="justify-content:space-between">
     <span class="y-label y-op-5">github</span>
@@ -2653,7 +2653,7 @@ init();
 
 <footer class="y-footer">
   <div class="c"><span class="y-label y-op-7">yu.ai</span></div>
-  <div class="c"><a class="y-label" href="https://yu.ai/" style="opacity:.7;color:inherit;text-decoration:none">home ↗</a></div>
+  <div class="c"><a class="y-label" href="https://yuai-r.cn/" style="opacity:.7;color:inherit;text-decoration:none">home ↗</a></div>
   <div class="c"><a class="y-label" href="https://github.com/yuluyangguang1/hermes-portable" target="_blank" rel="noopener" style="opacity:.7;color:inherit;text-decoration:none">github ↗</a></div>
   <div class="c"><span class="y-label y-op-5">hermes portable</span></div>
   <div class="c"><span class="y-label y-op-5" style="color:var(--accent)">hermes config</span></div>
