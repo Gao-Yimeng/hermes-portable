@@ -51,10 +51,10 @@ node\npm.cmd install -g hermes-web-ui --prefix .\node
 
 1. 把 `hermes-web-ui` 从 `PATH` 中移除（或直接改名 `hermes-web-ui` → `hermes-web-ui.off`）
 2. 或者启动 Hermes 之前手动启动：
-   ```bash
-   hermes-web-ui start --port 8648 --upstream http://127.0.0.1:8642
-   ```
-   然后浏览器访问 http://127.0.0.1:8648
+ ```bash
+ hermes-web-ui start --port 8648 --upstream http://127.0.0.1:8642
+ ```
+ 然后浏览器访问 http://127.0.0.1:8648
 
 ---
 
@@ -63,8 +63,8 @@ node\npm.cmd install -g hermes-web-ui --prefix .\node
 | 服务 | 端口 | 说明 |
 |---|---|---|
 | Hermes Agent gateway | 8642 | Hermes 内部 API |
-| Hermes Web UI        | 8648 | 浏览器管理界面 |
-| Config Panel         | 17520 | 本地配置面板（首次启动自动打开） |
+| Hermes Web UI | 8648 | 浏览器管理界面 |
+| Config Panel | 17520 | 本地配置面板（首次启动自动打开） |
 
 端口被占用时：目前启动器不做探测和回退，Web UI 启动会静默失败。遇到时请手动释放端口或
 修改启动器参数。
