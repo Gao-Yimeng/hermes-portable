@@ -336,17 +336,22 @@ start_config_server() {
 }
 
 watchdog_config_server() {
-  local parent_pid=$$  # 保存父进程 PID（即 launcher 自己）
+  # parent_pid is captured in the watchdog subshell so a kill -9 of
+  # the launcher (which never runs the EXIT trap) still tears us down
+  # within one tick.
+  local parent_pid=$$
   while true; do
     sleep 10
-    # 父进程已死（kill -9），watchdog 自杀避免孤立
+    # Launcher dead — exit. Cleanup trap handles the normal-exit path.
     if ! kill -0 "$parent_pid" 2>/dev/null; then
       exit 0
     fi
-    # hermes 已退出，watchdog 退出
-    if [ -z "$HERMES_PID" ] || ! kill -0 "$HERMES_PID" 2>/dev/null; then
-      break
-    fi
+    # NOTE: don't gate on HERMES_PID here. `watchdog_config_server &`
+    # forks BEFORE hermes starts, so the watchdog's snapshot of
+    # HERMES_PID is "" forever — the parent's later assignment can't
+    # propagate back into a fork. Gating on it caused the watchdog to
+    # `break` on its first tick, defeating the auto-restart entirely.
+    # Restart config_server if it's gone.
     if [ -n "$CONFIG_PID" ] && ! kill -0 "$CONFIG_PID" 2>/dev/null; then
       start_config_server
     fi
