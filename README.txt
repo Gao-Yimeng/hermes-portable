@@ -27,11 +27,16 @@ You never need to touch those directories. Use `data/` for everything.
 
 Windows notes
 -------------
-  • Windows native support is Early Beta.
+  • Windows native support is stable (upstream Hermes Agent docs
+    removed the Beta tag at v0.14.0). The launcher runs hermes
+    directly via venv\Scripts\hermes.exe — no WSL required.
   • SmartScreen will warn "Unknown publisher" on first run —
     click "More info" → "Run anyway".
-  • If anything misbehaves, try Hermes-WSL.bat (WSL2 fallback).
-    The Universal zip carries a Linux venv that WSL can use directly.
+  • Hermes-WSL.bat is still shipped as an optional path: use it if
+    you want POSIX-only features (e.g. dashboard's embedded /chat
+    terminal pane, which needs a POSIX PTY) or if your machine
+    blocks something the native path needs.
+    The Universal zip carries a Linux venv that WSL2 can use directly.
   • Prefer short install paths (e.g. C:\HP) — long paths can trip up
     older Python packages on Windows.
 

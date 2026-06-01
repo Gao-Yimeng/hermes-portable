@@ -6,9 +6,16 @@ chcp 65001 >nul
 setlocal enabledelayedexpansion
 
 rem =======================================================
-rem  Hermes Portable - WSL2 fallback launcher
-rem  Only use this if Hermes.bat (native) fails on your
-rem  Windows setup. Requires WSL2 + Ubuntu or similar.
+rem  Hermes Portable - WSL2 launcher (optional)
+rem
+rem  Native Windows is the recommended path (Hermes.bat) — upstream
+rem  Hermes Agent has been native on Win10/11 since v0.14.0 (no WSL
+rem  required). This launcher remains because a few features need
+rem  POSIX semantics that ConPTY can't provide:
+rem    * dashboard /chat embedded terminal pane (POSIX PTY only)
+rem    * Linux-only hermes skills, Linux file watchers
+rem    * locked-down Win machines where the native path is blocked
+rem  Requires WSL2 + a Linux distro (Ubuntu recommended).
 rem =======================================================
 
 set "HERE=%~dp0"

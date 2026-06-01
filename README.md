@@ -33,7 +33,7 @@
 | **Linux** | `./Hermes.sh` | glibc 2.28+（Node.js 24 要求） |
 | **Windows** | 双击 `Hermes.bat` | Windows 10 / 11（原生，无需 WSL） |
 
-> Windows 原生仍是 **Early Beta**。遇到问题可以 fallback 到 `Hermes-WSL.bat`（需要 WSL2 + Ubuntu）。
+> Windows 原生支持已稳定（[官方文档](https://hermes-agent.nousresearch.com/docs/user-guide/windows-native) 自 v0.14.0 起去除 Beta 标记）。如果你需要 dashboard 内嵌终端等依赖 POSIX PTY 的能力，可以改用 `Hermes-WSL.bat`（需要 WSL2 + Ubuntu）。
 
 ---
 

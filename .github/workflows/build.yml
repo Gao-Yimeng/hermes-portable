@@ -165,7 +165,7 @@ jobs:
             echo "| **macOS** (Intel) | x86_64 | [HermesPortable-macOS-x64.zip](https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/HermesPortable-macOS-x64.zip) | 双击 \`Hermes.command\` |"
             echo "| **Linux** (glibc 2.28+) | x86_64 | [HermesPortable-Linux-x64.zip](https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/HermesPortable-Linux-x64.zip) | \`./Hermes.sh\` |"
             echo "| **Linux** (glibc 2.28+) | arm64 | [HermesPortable-Linux-arm64.zip](https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/HermesPortable-Linux-arm64.zip) | \`./Hermes.sh\` |"
-            echo "| **Windows** 10/11 (Early Beta) | x86_64 | [HermesPortable-Windows-x64.zip](https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/HermesPortable-Windows-x64.zip) | 双击 \`Hermes.bat\` |"
+            echo "| **Windows** 10/11 (native, no WSL) | x86_64 | [HermesPortable-Windows-x64.zip](https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/HermesPortable-Windows-x64.zip) | 双击 \`Hermes.bat\` |"
             echo "| 🌍 **Universal** (全架构合一 / all arches) | — | [HermesPortable-Universal.zip](https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/HermesPortable-Universal.zip) | U 盘多机共用 / USB for any box |"
             echo
             echo "## 首次使用 Quick start"
