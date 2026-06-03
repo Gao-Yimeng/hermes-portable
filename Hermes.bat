@@ -149,22 +149,17 @@ if "%LAUNCH_MODE%"=="desktop" (
         if exist "%HERE%\runtime\desktop\dist\Hermes-Setup.exe" (
             echo   Installing desktop app (first run, ~1 min)...
             echo.
-            rem NSIS /D= does not support quotes and must be last arg.
-            rem Paths with spaces break it, so install to a short temp path
-            rem and then copy to the final location.
-            set "INSTALL_DIR=%TEMP%\HermesInstall_%RANDOM%"
-            "%HERE%\runtime\desktop\dist\Hermes-Setup.exe" /S /D=!INSTALL_DIR!
-            set "FINAL_DIR=%HERE%\runtime\desktop\dist\win-unpacked"
+            set "INSTALL_DIR=%HERE%\runtime\desktop\dist\win-unpacked"
+            rem NSIS /D= must be last arg and does not support quotes.
+            rem Use 8.3 short path to avoid spaces breaking the flag.
+            for %%I in ("!INSTALL_DIR!") do set "SHORT_DIR=%%~sI"
+            "%HERE%\runtime\desktop\dist\Hermes-Setup.exe" /S /D=!SHORT_DIR!
             if exist "!INSTALL_DIR!\Hermes.exe" (
-                if exist "!FINAL_DIR!" rmdir /S /Q "!FINAL_DIR!"
-                xcopy /E /I /Q "!INSTALL_DIR!" "!FINAL_DIR!" >nul 2>&1
-                set "DESKTOP_APP=!FINAL_DIR!\Hermes.exe"
-                rmdir /S /Q "!INSTALL_DIR!" >nul 2>&1
+                set "DESKTOP_APP=!INSTALL_DIR!\Hermes.exe"
                 echo   Desktop app installed.
                 echo.
             ) else (
-                rem Try default install location (NSIS may ignore /D=)
-                if exist "!INSTALL_DIR!" rmdir /S /Q "!INSTALL_DIR!" >nul 2>&1
+                rem /D= may have been ignored; check default locations
                 set "FOUND_APP="
                 for /f "delims=" %%F in ('dir /b /s "%LOCALAPPDATA%\Hermes\Hermes.exe" 2^>nul') do (
                     if not defined FOUND_APP set "FOUND_APP=%%F"
@@ -174,10 +169,10 @@ if "%LAUNCH_MODE%"=="desktop" (
                 )
                 if defined FOUND_APP (
                     for %%P in ("!FOUND_APP!") do set "APP_DIR=%%~dpP"
-                    if exist "!FINAL_DIR!" rmdir /S /Q "!FINAL_DIR!"
-                    xcopy /E /I /Q "!APP_DIR!" "!FINAL_DIR!" >nul 2>&1
-                    set "DESKTOP_APP=!FINAL_DIR!\Hermes.exe"
-                    echo   Desktop app installed (from default location).
+                    if exist "!INSTALL_DIR!" rmdir /S /Q "!INSTALL_DIR!"
+                    xcopy /E /I /Q "!APP_DIR!" "!INSTALL_DIR!" >nul 2>&1
+                    set "DESKTOP_APP=!INSTALL_DIR!\Hermes.exe"
+                    echo   Desktop app installed.
                     echo.
                 ) else (
                     echo   [ERROR] Silent install failed.
