@@ -250,12 +250,11 @@ REM Enable ANSI escape codes (Windows 10+, silent fallback on older)
 for /F %%a in ('echo prompt $E ^| cmd') do set "ESC=%%a"
 
 echo.
-echo %ESC%[38;5;220m  ██╗   ██╗██╗  ██╗   ██╗ ██████╗%ESC%[0m
-echo %ESC%[38;5;220m  ╚██╗ ██╔╝██║  ╚██╗ ██╔╝██╔════╝%ESC%[0m
-echo %ESC%[38;5;214m   ╚████╔╝ ██║   ╚████╔╝ ██║  ███╗%ESC%[0m
-echo %ESC%[38;5;214m    ╚██╔╝  ██║    ╚██╔╝  ██║   ██║%ESC%[0m
-echo %ESC%[38;5;166m     ██║   ███████╗██║   ╚██████╔╝%ESC%[0m
-echo %ESC%[38;5;166m     ╚═╝   ╚══════╝╚═╝    ╚═════╝%ESC%[0m
+echo %ESC%[38;5;220m  H   H EEEEE RRRR  M     M EEEEE  SSSS%ESC%[0m
+echo %ESC%[38;5;220m  H   H E     R   R MM   MM E     S    %ESC%[0m
+echo %ESC%[38;5;214m  HHHHH EEEE  RRRR  M M M M EEEE   SSS %ESC%[0m
+echo %ESC%[38;5;214m  H   H E     R  R  M   M M E         S%ESC%[0m
+echo %ESC%[38;5;166m  H   H EEEEE R   R M   M M EEEEE SSSS %ESC%[0m
 echo.
 echo   Hermes Portable
 
@@ -294,7 +293,7 @@ rem IMPORTANT: `echo X > file` in cmd writes a TRAILING SPACE after X
 rem (cmd parses whitespace between the value and `>` as part of the
 rem echoed argument). The space would then fail the `tasklist /FI "PID
 rem eq 1234 "` match on re-entry, making every subsequent launch treat
-rem the lock as stale — effectively disabling the single-instance
+rem the lock as stale - effectively disabling the single-instance
 rem check. The `(echo X)>file` form trims the trailing space because
 rem the parenthesized block ends at `)`.
 set "HERMES_TITLE=HermesLauncher_%RANDOM%_%TIME%"
