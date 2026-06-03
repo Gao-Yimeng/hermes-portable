@@ -343,11 +343,10 @@ if [ "$LAUNCH_MODE" = "desktop" ]; then
   echo "  Config panel: http://127.0.0.1:17520"
 
   # 启动桌面版
-  if [ "$DESKTOP_APP" = *.app ]; then
-    open "$DESKTOP_APP"
-  else
-    exec "$DESKTOP_APP" "$@"
-  fi
+  case "$DESKTOP_APP" in
+    *.app) open "$DESKTOP_APP" ;;
+    *)     exec "$DESKTOP_APP" "$@" ;;
+  esac
   exit 0
 fi
 
