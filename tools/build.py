@@ -708,32 +708,54 @@ def _download_macos_desktop(url, runtime_dir):
 
 
 def _download_windows_desktop(url, runtime_dir):
-    """Download Windows installer and extract"""
+    """Download Windows installer and silent-install to dist/win-unpacked/"""
     import tempfile
 
     with tempfile.TemporaryDirectory() as tmp:
         exe_path = Path(tmp) / "Hermes-Setup.exe"
         download(url, exe_path)
 
-        info("Extracting from installer …")
-        # Use 7z or built-in extraction
-        # For NSIS installer, we can extract with 7z
+        info("Running silent install …")
+        install_dir = Path(tmp) / "install"
+        # NSIS silent install: /S = silent, /D= sets directory (must be last,
+        # no quotes around path even if it contains spaces)
         try:
-            run(["7z", "x", str(exe_path), f"-o{tmp}/extracted", "-y"])
-            # Copy extracted files to dist/win-unpacked/ (what launchers expect)
-            extracted = Path(tmp) / "extracted"
-            if extracted.exists():
-                dst = runtime_dir / "dist" / "win-unpacked"
-                dst.parent.mkdir(parents=True, exist_ok=True)
-                if dst.exists():
-                    shutil.rmtree(dst)
-                shutil.copytree(extracted, dst)
-                info("  Extracted to dist/win-unpacked/")
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            warn("7z not found; copying installer as-is")
+            run([str(exe_path), "/S", f"/D={install_dir}"])
+        except subprocess.CalledProcessError:
+            warn("Silent install failed; copying installer as-is")
             dist_dir = runtime_dir / "dist"
             dist_dir.mkdir(parents=True, exist_ok=True)
             shutil.copy2(exe_path, dist_dir / "Hermes-Setup.exe")
+            return
+
+        # Find the installed app (usually under install_dir directly, or
+        # under a subdirectory like "app-*" for Electron apps)
+        dst = runtime_dir / "dist" / "win-unpacked"
+        dst.parent.mkdir(parents=True, exist_ok=True)
+
+        # Look for the main executable to determine the app root
+        exe_candidates = list(install_dir.rglob("Hermes.exe"))
+        if not exe_candidates:
+            # Try common Electron patterns
+            exe_candidates = list(install_dir.rglob("*.exe"))
+            exe_candidates = [e for e in exe_candidates
+                              if "uninstall" not in e.name.lower()]
+
+        if exe_candidates:
+            # The app root is the directory containing the main exe
+            app_root = exe_candidates[0].parent
+            # If the exe is in a subfolder (e.g. app-xxx/), use that
+            # as the win-unpacked directory
+            if dst.exists():
+                shutil.rmtree(dst)
+            shutil.copytree(app_root, dst)
+            info(f"  Installed to dist/win-unpacked/")
+        else:
+            # Fallback: copy everything from install_dir
+            if dst.exists():
+                shutil.rmtree(dst)
+            shutil.copytree(install_dir, dst)
+            info(f"  Installed to dist/win-unpacked/ (fallback)")
 
 
 def _download_linux_desktop(url, runtime_dir):
