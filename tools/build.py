@@ -708,54 +708,98 @@ def _download_macos_desktop(url, runtime_dir):
 
 
 def _download_windows_desktop(url, runtime_dir):
-    """Download Windows installer and silent-install to dist/win-unpacked/"""
+    """Download Windows installer and extract to dist/win-unpacked/"""
     import tempfile
 
     with tempfile.TemporaryDirectory() as tmp:
         exe_path = Path(tmp) / "Hermes-Setup.exe"
         download(url, exe_path)
 
-        info("Running silent install …")
+        dist_dir = runtime_dir / "dist"
+        dist_dir.mkdir(parents=True, exist_ok=True)
+        dst = dist_dir / "win-unpacked"
+
+        # Strategy 1: NSIS silent install with timeout
+        # The installer may hang in headless CI (no GUI), but it typically
+        # extracts files first and only hangs on post-install UI.  A 120 s
+        # timeout lets us grab the extracted files even if the process never
+        # exits cleanly.
+        info("Running silent install (120 s timeout) …")
         install_dir = Path(tmp) / "install"
-        # NSIS silent install: /S = silent, /D= sets directory (must be last,
-        # no quotes around path even if it contains spaces)
         try:
-            run([str(exe_path), "/S", f"/D={install_dir}"])
-        except subprocess.CalledProcessError:
-            warn("Silent install failed; copying installer as-is")
-            dist_dir = runtime_dir / "dist"
-            dist_dir.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(exe_path, dist_dir / "Hermes-Setup.exe")
-            return
+            proc = subprocess.Popen(
+                [str(exe_path), "/S", f"/D={install_dir}"],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            )
+            proc.wait(timeout=120)
+        except subprocess.TimeoutExpired:
+            warn("Installer timed out; killing and checking for extracted files …")
+            proc.kill()
+            proc.wait()
+        except Exception as exc:
+            warn(f"Silent install error: {exc}")
 
-        # Find the installed app (usually under install_dir directly, or
-        # under a subdirectory like "app-*" for Electron apps)
-        dst = runtime_dir / "dist" / "win-unpacked"
-        dst.parent.mkdir(parents=True, exist_ok=True)
+        # Check if files appeared (installer may extract before hanging)
+        if install_dir.exists() and any(install_dir.rglob("*.exe")):
+            # Find the app root: look for Hermes.exe first, then any non-uninstall exe
+            exe_candidates = list(install_dir.rglob("Hermes.exe"))
+            if not exe_candidates:
+                exe_candidates = [e for e in install_dir.rglob("*.exe")
+                                  if "uninstall" not in e.name.lower()]
+            if exe_candidates:
+                app_root = exe_candidates[0].parent
+                if dst.exists():
+                    shutil.rmtree(dst)
+                shutil.copytree(app_root, dst)
+                info(f"  Installed to dist/win-unpacked/")
+                return
 
-        # Look for the main executable to determine the app root
-        exe_candidates = list(install_dir.rglob("Hermes.exe"))
-        if not exe_candidates:
-            # Try common Electron patterns
-            exe_candidates = list(install_dir.rglob("*.exe"))
-            exe_candidates = [e for e in exe_candidates
-                              if "uninstall" not in e.name.lower()]
+        # Strategy 2: 7z recursive extraction
+        # NSIS outer shell → inner 7z/NSIS archive → actual files
+        info("Trying 7z extraction …")
+        extract_dir = Path(tmp) / "7z_out"
+        try:
+            run(["7z", "x", str(exe_path), f"-o{extract_dir}", "-y", "-bso0"])
+            # The NSIS installer may contain inner archives (app.7z, $_OUTDIR, etc.)
+            # Recursively extract any archives found
+            for archive in sorted(extract_dir.rglob("*.7z")):
+                inner = archive.parent / (archive.stem + "_extracted")
+                try:
+                    run(["7z", "x", str(archive), f"-o{inner}", "-y", "-bso0"])
+                except subprocess.CalledProcessError:
+                    pass
+            # Also try inner NSIS stubs
+            for stub in extract_dir.rglob("*.exe"):
+                if stub == exe_path:
+                    continue
+                if stub.stat().st_size > 5_000_000:  # likely an inner installer
+                    inner = stub.parent / (stub.stem + "_extracted")
+                    try:
+                        run(["7z", "x", str(stub), f"-o{inner}", "-y", "-bso0"])
+                    except subprocess.CalledProcessError:
+                        pass
+            # Now search for the app in all extracted dirs
+            for candidate in extract_dir.rglob("Hermes.exe"):
+                app_root = candidate.parent
+                if dst.exists():
+                    shutil.rmtree(dst)
+                shutil.copytree(app_root, dst)
+                info(f"  Extracted to dist/win-unpacked/ (7z recursive)")
+                return
+            # Fallback: look for any Electron app structure (resources/app.asar)
+            for asar in extract_dir.rglob("app.asar"):
+                app_root = asar.parent.parent  # resources/../
+                if dst.exists():
+                    shutil.rmtree(dst)
+                shutil.copytree(app_root, dst)
+                info(f"  Extracted to dist/win-unpacked/ (7z via app.asar)")
+                return
+        except (subprocess.CalledProcessError, FileNotFoundError) as exc:
+            warn(f"7z extraction failed: {exc}")
 
-        if exe_candidates:
-            # The app root is the directory containing the main exe
-            app_root = exe_candidates[0].parent
-            # If the exe is in a subfolder (e.g. app-xxx/), use that
-            # as the win-unpacked directory
-            if dst.exists():
-                shutil.rmtree(dst)
-            shutil.copytree(app_root, dst)
-            info(f"  Installed to dist/win-unpacked/")
-        else:
-            # Fallback: copy everything from install_dir
-            if dst.exists():
-                shutil.rmtree(dst)
-            shutil.copytree(install_dir, dst)
-            info(f"  Installed to dist/win-unpacked/ (fallback)")
+        # Strategy 3: fallback — copy installer as-is
+        warn("Could not extract app; copying installer as-is")
+        shutil.copy2(exe_path, dist_dir / "Hermes-Setup.exe")
 
 
 def _download_linux_desktop(url, runtime_dir):
