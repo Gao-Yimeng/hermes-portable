@@ -138,7 +138,7 @@ HermesPortable/
 - Unix: `export HOME=$HERE/_home`
 - Windows: `set HOME=%HERE%\_home` + `set USERPROFILE=%HERE%\_home`
 
-于是所有走 `~/.hermes` 的读写（hermes-web-ui 缓存、pip config、Node 的 npm/npx 等）**全部落到 U 盘内的 `data/` 里**，宿主机真 `~/.hermes/`、`%USERPROFILE%\.hermes` 从头到尾**零接触**。
+于是所有走 `~/.hermes` 的读写（pip config、Node 的 npm/npx 等）**全部落到 U 盘内的 `data/` 里**，宿主机真 `~/.hermes/`、`%USERPROFILE%\.hermes` 从头到尾**零接触**。
 
 拔掉 U 盘 → 什么都带走，什么都没留下。
 
@@ -159,10 +159,13 @@ HermesPortable/
 │ └── fix_shims.py # shebang 修复
 ├── tools/ # 开发者工具（可选）
 │ ├── build.py # 构建脚本
+│ ├── build-desktop.py # 桌面版构建脚本
 │ └── mac-rebuild.sh / linux-rebuild.sh # 架构重建
 ├── venv-<platform>/ # Python 虚拟环境
 ├── python-<platform>/ # 独立 Python 3.12 运行时
-├── node-<platform>/ # Node.js + hermes-web-ui
+├── node-<platform>/ # Node.js 运行时
+├── runtime/ # 运行时资源
+│ └── desktop/ # 官方桌面版（可选）
 ├── hermes-agent/ # 上游源码（可 git pull 更新）
 └── README.txt / guide.html / … # 文档
 ```
@@ -178,18 +181,47 @@ HermesPortable/
 | 离线场景 | 需要联网安装 | 首次构建后可离线用 |
 | 多设备同步 | 手动同步 | 数据跟着 U 盘走 |
 
-## Web 管理界面
+## 启动方式
 
-启动后自动在后台起 [hermes-web-ui](https://github.com/EKKOLearnAI/hermes-web-ui)，默认端口 `8648`。
+**默认启动桌面版**（双击即可）：
+
+```bash
+# macOS
+./Hermes.command
+
+# Linux
+./Hermes.sh
+
+# Windows
+Hermes.bat
+```
+
+**启动 CLI 模式**（命令行）：
+
+```bash
+# macOS/Linux
+./Hermes.command --cli
+
+# Windows
+Hermes.bat --cli
+```
+
+### 构建
+
+```bash
+# 构建便携版（包含桌面版，默认）
+python3 tools/build.py
+
+# 仅构建 CLI 版（不含桌面版）
+python3 tools/build.py --no-desktop
+```
 
 ### 端口占用
 
 | 服务 | 端口 | 用途 |
 |------|------|------|
 | Hermes Agent Gateway | 8642 | 内部 API |
-| Hermes Web UI | 8648 | 浏览器管理界面 |
 | Config Panel | 17520 | 首次配置 + 模型/渠道面板 |
-| Chat Viewer | 17521 | 会话浏览 |
 
 ## 备份与更新
 
@@ -203,7 +235,7 @@ HermesPortable/
 |------|------|
 | [hermes-portable](https://github.com/yuluyangguang1/hermes-portable) | 本项目 |
 | [hermes-agent](https://github.com/NousResearch/hermes-agent) | 上游（Nous Research 的自进化 AI Agent） |
-| [hermes-web-ui](https://github.com/EKKOLearnAI/hermes-web-ui) | Web 管理界面 |
+| [官方桌面版](https://hermes-agent.nousresearch.com/desktop) | 官方桌面应用 |
 | [官方文档](https://hermes-agent.nousresearch.com/docs) | Hermes Agent docs |
 
 ## 致谢

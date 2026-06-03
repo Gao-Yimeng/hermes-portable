@@ -7,6 +7,21 @@
 # non-zero must not abort us before we capture the exit code.
 set -u
 
+# ── Parse command line arguments ──────────────────────────────
+LAUNCH_MODE="desktop"  # 默认启动桌面版
+for arg in "$@"; do
+  case "$arg" in
+    --cli)
+      LAUNCH_MODE="cli"
+      shift
+      ;;
+    --desktop|--gui)
+      LAUNCH_MODE="desktop"
+      shift
+      ;;
+  esac
+done
+
 HERE="$(cd "$(dirname "$0")" && pwd)"
 
 # ── Platform detection ────────────────────────────────────────
@@ -67,8 +82,8 @@ fi
 # the zip only ships `venv/` (not `venv-macos-arm64/`), the launcher
 # happily uses the wrong venv. `exec`-ing those binaries then fails
 # with a cryptic "Bad CPU type in executable" / "Killed: 9", deep
-# inside the script, after the lock + symlink + webui have already
-# been set up. Detect the mismatch up front via `file -b` and bail
+# inside the script, after the lock + symlink have already been set
+# up. Detect the mismatch up front via `file -b` and bail
 # with an explanation the user can actually act on.
 #
 # Universal zips are NOT affected: they already carry per-arch
@@ -143,7 +158,7 @@ fi
 # ── HOME hijack sandbox ───────────────────────────────────────
 # $HERE/_home is a private HOME. $HERE/_home/.hermes is a symlink
 # pointing to $HERE/data, so any library that reads or writes ~/.hermes
-# (hermes-web-ui, some plugins, etc.) lands inside the portable folder.
+# (some plugins, etc.) lands inside the portable folder.
 # The host's real ~/.hermes is never read or touched — zero trace.
 mkdir -p "$HERE/data"
 SANDBOX="$HERE/_home"
@@ -221,7 +236,6 @@ fi
 # that correctly detects "already running" and exits 1 would still
 # run the trap and delete the first instance's lock — making the
 # single-instance check useless from the third launch onward.
-WEBUI_PID=""
 HERMES_PID=""
 CONFIG_PID=""
 OWN_LOCK=0
@@ -233,11 +247,6 @@ cleanup() {
   # Kill config server if still alive
   if [ -n "$CONFIG_PID" ] && kill -0 "$CONFIG_PID" 2>/dev/null; then
     kill "$CONFIG_PID" 2>/dev/null || true
-  fi
-  # Kill webui child if still alive
-  if [ -n "$WEBUI_PID" ] && kill -0 "$WEBUI_PID" 2>/dev/null; then
-    kill "$WEBUI_PID" 2>/dev/null || true
-    wait "$WEBUI_PID" 2>/dev/null || true
   fi
   # Kill hermes child if still alive (covers Ctrl-C from this script)
   if [ -n "$HERMES_PID" ] && kill -0 "$HERMES_PID" 2>/dev/null; then
@@ -296,6 +305,51 @@ echo -e "${BRONZE}     ╚═╝   ╚══════╝╚═╝    ╚═�
 echo ""
 echo "        Hermes Portable"
 echo ""
+
+# ── Desktop mode launch ────────────────────────────────────────
+if [ "$LAUNCH_MODE" = "desktop" ]; then
+  echo ""
+  echo "  启动桌面版..."
+  echo ""
+
+  # 检查桌面版是否存在
+  DESKTOP_APP=""
+  if [ -d "$HERE/runtime/desktop/dist/mac-arm64/Hermes.app" ]; then
+    DESKTOP_APP="$HERE/runtime/desktop/dist/mac-arm64/Hermes.app"
+  elif [ -d "$HERE/runtime/desktop/dist/mac/Hermes.app" ]; then
+    DESKTOP_APP="$HERE/runtime/desktop/dist/mac/Hermes.app"
+  elif [ -x "$HERE/runtime/desktop/dist/linux-unpacked/Hermes" ]; then
+    DESKTOP_APP="$HERE/runtime/desktop/dist/linux-unpacked/Hermes"
+  fi
+
+  if [ -z "$DESKTOP_APP" ]; then
+    echo "  [ERROR] 桌面版未找到"
+    echo ""
+    echo "  请先构建桌面版:"
+    echo "    python3 tools/build.py"
+    echo ""
+    exit 1
+  fi
+
+  # 设置桌面版环境变量
+  export HERMES_DESKTOP_USER_DATA_DIR="$HERE/data/desktop-userdata"
+  export HERMES_PORTABLE_ROOT="$HERE"
+  export HERMES_PORTABLE_MODE="1"
+
+  # 后台启动配置中心（端口 17520）
+  export HERMES_BROWSER_OPENED=1
+  nohup "$VENV_DIR/bin/python" "$HERE/lib/config_server.py" \
+    > "$HERE/data/config_server.log" 2>&1 &
+  echo "  Config panel: http://127.0.0.1:17520"
+
+  # 启动桌面版
+  if [ "$DESKTOP_APP" = *.app ]; then
+    open "$DESKTOP_APP"
+  else
+    exec "$DESKTOP_APP" "$@"
+  fi
+  exit 0
+fi
 
 # ── First-run / --config handling ─────────────────────────────
 HAS_KEY=false
@@ -361,40 +415,9 @@ watchdog_config_server &
 WATCHDOG_PID=$!
 echo "  Config panel: http://127.0.0.1:17520 (change model anytime)"
 
-# ── Background web UI ─────────────────────────────────────────
-# Start in the background, then poll until the port is up and open
-# the browser. Without the auto-open, second-launch users (who skip
-# the config panel because their API key is already set) had to find
-# the URL themselves — most never realized the chat UI was running.
-if command -v hermes-web-ui >/dev/null 2>&1; then
-  hermes-web-ui start --port 8648 >/dev/null 2>&1 &
-  WEBUI_PID=$!
-  # Spawn a backgrounded waiter so the parent shell doesn't block
-  # on a slow webui boot. 30 × 0.5s = 15s ceiling — plenty for the
-  # hermes-web-ui Node startup, even on a slow USB.
-  (
-    for _ in $(seq 1 30); do
-      sleep 0.5
-      # /bin/sh -c 'true' is portable; we use curl when available
-      # for a real HTTP probe, otherwise fall back to /dev/tcp.
-      if command -v curl >/dev/null 2>&1; then
-        curl -s -o /dev/null --max-time 1 "http://127.0.0.1:8648/" && {
-          open_url "http://127.0.0.1:8648/"
-          break
-        }
-      else
-        if (echo > /dev/tcp/127.0.0.1/8648) 2>/dev/null; then
-          open_url "http://127.0.0.1:8648/"
-          break
-        fi
-      fi
-    done
-  ) >/dev/null 2>&1 &
-fi
-
 # ── Run hermes in foreground, BUT NOT with exec ───────────────
 # exec would replace this shell and the EXIT trap would never fire,
-# leaving the webui child orphaned. Use a normal child + wait.
+# leaving the config server child orphaned. Use a normal child + wait.
 "$VENV_DIR/bin/hermes" "$@" &
 HERMES_PID=$!
 wait "$HERMES_PID"

@@ -15,6 +15,14 @@ rem =======================================================
 rem  Hermes Portable - Windows native launcher
 rem =======================================================
 
+rem -- Parse command line arguments ---------------------------
+set "LAUNCH_MODE=desktop"
+for %%a in (%*) do (
+    if "%%a"=="--cli" set "LAUNCH_MODE=cli"
+    if "%%a"=="--desktop" set "LAUNCH_MODE=desktop"
+    if "%%a"=="--gui" set "LAUNCH_MODE=desktop"
+)
+
 set "HERE=%~dp0"
 rem %~dp0 ends with backslash; strip it for consistency
 if "%HERE:~-1%"=="\" set "HERE=%HERE:~0,-1%"
@@ -62,8 +70,8 @@ if exist "%HERE%\node-windows-x64" (
 rem -- HOME hijack sandbox --------------------------------
 rem  %HERE%\_home acts as a private HOME. %HERE%\_home\.hermes is a
 rem  directory junction (mklink /J) pointing to %HERE%\data, so any
-rem  tool that reads or writes %USERPROFILE%\.hermes (hermes-web-ui,
-rem  some plugins, ...) lands inside the portable folder instead.
+rem  tool that reads or writes %USERPROFILE%\.hermes (some plugins, ...)
+rem  lands inside the portable folder instead.
 rem  The host's real %USERPROFILE%\.hermes is never touched.
 rem
 rem  Junctions work on NTFS without admin. If the U-stick is formatted
@@ -123,6 +131,43 @@ set "USERPROFILE=%SANDBOX%"
 set "HERMES_HOME=%HERE%\data"
 set "PYTHONIOENCODING=utf-8"
 set "PYTHONUTF8=1"
+
+rem -- Desktop mode launch ---------------------------------
+if "%LAUNCH_MODE%"=="desktop" (
+    echo.
+    echo   Starting desktop version...
+    echo.
+
+    rem Check if desktop app exists
+    set "DESKTOP_APP="
+    if exist "%HERE%\runtime\desktop\dist\win-unpacked\Hermes.exe" (
+        set "DESKTOP_APP=%HERE%\runtime\desktop\dist\win-unpacked\Hermes.exe"
+    )
+
+    if not defined DESKTOP_APP (
+        echo   [ERROR] Desktop app not found
+        echo.
+        echo   Please build the desktop version first:
+        echo     python tools\build.py
+        echo.
+        pause
+        exit /b 1
+    )
+
+    rem Set desktop environment variables
+    set "HERMES_DESKTOP_USER_DATA_DIR=%HERE%\data\desktop-userdata"
+    set "HERMES_PORTABLE_ROOT=%HERE%"
+    set "HERMES_PORTABLE_MODE=1"
+
+    rem Start config server in background (port 17520)
+    set "HERMES_BROWSER_OPENED=1"
+    start "" /b "%VENV_DIR%\Scripts\python.exe" "%HERE%\lib\config_server.py"
+    echo   Config panel: http://127.0.0.1:17520
+
+    rem Launch desktop app
+    start "" "!DESKTOP_APP!"
+    exit /b 0
+)
 rem Set PYTHONHOME for python-build-standalone (fixes "No module named encodings")
 for /f "delims=" %%D in ('dir /b /s /ad "%PYTHON_DIR%\install\lib" 2^>nul') do (
     for %%P in ("%%D\..") do set "PYTHONHOME=%%~fP"
@@ -242,41 +287,6 @@ set "HERMES_BROWSER_OPENED=1"
 start "" /b "%VENV_DIR%\Scripts\python.exe" "%HERE%\lib\config_server.py"
 echo   Config panel: http://127.0.0.1:17520 (change model anytime)
 
-rem Best-effort background web UI (if user installed hermes-web-ui)
-set "WEBUI_PID="
-where hermes-web-ui >nul 2>&1
-if !errorlevel! equ 0 (
-    rem Start webui in background and capture its PID.
-    rem We record the PID so the :cleanup section can kill exactly
-    rem this instance, not a webui from a different HermesPortable folder.
-    rem (Note: tasklist title-matching can miss; the port-8648 netstat
-    rem sweep in :cleanup is the backstop.)
-    start "" /b cmd /c "hermes-web-ui start --port 8648 >nul 2>&1"
-    rem Give it a moment to spawn, then grab the newest hermes-web-ui PID.
-    timeout /t 2 /nobreak >nul
-    for /f "tokens=2" %%A in ('tasklist /FI "IMAGENAME eq node.exe" /V /NH 2^>nul ^| findstr /I "hermes-web-ui"') do (
-        if not defined WEBUI_PID set "WEBUI_PID=%%A"
-    )
-    rem Auto-open the browser once the port is up. Without this, every
-    rem launch after the first (which uses the config panel auto-open)
-    rem started the chat UI but never showed it to the user. Poll up to
-    rem 15 seconds (30 × 500ms) for the listener to appear.
-    set "_WEBUI_READY=0"
-    for /l %%I in (1,1,30) do (
-        if "!_WEBUI_READY!"=="0" (
-            powershell -NoProfile -Command "try{$r=Invoke-WebRequest -Uri 'http://127.0.0.1:8648/' -UseBasicParsing -TimeoutSec 1;exit 0}catch{exit 1}" >nul 2>&1
-            if !errorlevel! equ 0 (
-                start "" "http://127.0.0.1:8648/"
-                set "_WEBUI_READY=1"
-            ) else (
-                rem 500ms wait via ping -n 2 ... -w 250 — timeout /t doesn't
-                rem support sub-second; ping is the standard idiom.
-                ping -n 2 -w 250 127.0.0.1 >nul 2>&1
-            )
-        )
-    )
-)
-
 rem Record our console PID in the lock file so future launches can
 rem detect stale locks. We find our own PID via a unique window title.
 rem
@@ -308,24 +318,6 @@ goto :cleanup
 :cleanup
 del "%LOCK_FILE%" >nul 2>&1
 del "%LOCK_FILE%.tmp" >nul 2>&1
-
-rem Kill only the webui instance WE started (tracked by PID).
-rem Previous version used a blanket taskkill by image name, which
-rem would kill webui from a different HermesPortable folder if the
-rem user was running two side-by-side.
-if defined WEBUI_PID (
-    taskkill /F /PID !WEBUI_PID! >nul 2>&1
-)
-
-rem Backstop: if we failed to capture WEBUI_PID (tasklist title match
-rem is fragile), kill whatever is LISTENING on our webui port 8648 so
-rem we don't leak a node process. Only one webui per port can listen,
-rem so this can't hit an unrelated app's chosen port by accident.
-if not defined WEBUI_PID (
-    for /f "tokens=5" %%a in ('netstat -ano 2^>nul ^| findstr ":8648 " ^| findstr "LISTENING"') do (
-        if not "%%a"=="0" taskkill /F /PID %%a >nul 2>&1
-    )
-)
 
 rem Kill background config_server (listening on ports 17520-17529)
 for /l %%p in (17520,1,17529) do (

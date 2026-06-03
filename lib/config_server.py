@@ -1918,7 +1918,7 @@ HTML_PAGE = r"""<!DOCTYPE html>
         </div>
         <div class="y-term-b" id="liveTerm"><span class="p">$ ./hermes serve</span>
 <span class="t" id="liveStatusLine">  · checking hermes…</span>
-<span class="t" id="liveWebuiLine" style="display:none"></span><span class="y-blink"></span></div>
+<span class="y-blink"></span></div>
       </div>
     </div>
   </div>
@@ -1929,7 +1929,6 @@ HTML_PAGE = r"""<!DOCTYPE html>
     <div id="hermesStatus" style="margin-top:12px;display:none;align-items:center;justify-content:center;gap:8px;font-family:var(--font-mono);font-size:11px;color:var(--fg-muted);">
       <span id="statusDot" style="width:8px;height:8px;border-radius:50%;background:#666;display:inline-block;"></span>
       <span id="statusText">检测中...</span>
-      <a id="webuiLink" href="#" target="_blank" rel="noopener" style="display:none;color:var(--emerald);margin-left:8px;">打开 Web UI →</a>
     </div>
   </div>
 
@@ -2485,21 +2484,10 @@ function _setLiveStatus(cls, text) {
   var line = document.getElementById('liveStatusLine');
   if (line) { line.className = cls; line.textContent = text; }
 }
-function _setLiveWebui(url) {
-  var line = document.getElementById('liveWebuiLine');
-  if (!line) return;
-  if (url) {
-    line.style.display = '';
-    line.innerHTML = '  · web ui: <a href="' + url + '" target="_blank" rel="noopener">' + url + '</a>';
-  } else {
-    line.style.display = 'none';
-  }
-}
 function checkStatus() {
   fetch('/api/status').then(r => r.json()).then(data => {
     const dot = document.getElementById('statusDot');
     const text = document.getElementById('statusText');
-    const webui = document.getElementById('webuiLink');
     const restartBtn = document.getElementById('restartBtn');
     if (data.running) {
       dot.style.background = '#10b981';
@@ -2513,12 +2501,6 @@ function checkStatus() {
       _setLiveStatus('t', '  · hermes not running — click 启动');
       text.textContent = 'Hermes 未运行';
       if (restartBtn) restartBtn.style.display = 'none';
-    }
-    if (data.webui_running && data.webui_url) {
-      webui.style.display = '';
-      webui.href = data.webui_url;
-    } else {
-      webui.style.display = 'none';
     }
   }).catch(() => {});
 }
@@ -3416,19 +3398,9 @@ class ConfigHandler(SimpleHTTPRequestHandler):
                 except (OSError, ProcessLookupError):
                     pass
 
-        # Check if hermes-web-ui is on port 8648
-        webui_running = False
-        try:
-            with urllib.request.urlopen("http://127.0.0.1:8648/", timeout=1) as _:
-                webui_running = True
-        except Exception:
-            pass
-
         return {
             "running": running,
             "pid": pid,
-            "webui_running": webui_running,
-            "webui_url": "http://127.0.0.1:8648/" if webui_running else None,
         }
 
     def _get_logs(self):

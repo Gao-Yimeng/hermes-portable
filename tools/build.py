@@ -7,7 +7,8 @@ USB stick or any other machine (same OS/arch) and run without installing
 anything on the host.
 
 Usage:
-  python3 build.py                        # platform-only layout → dist/HermesPortable/
+  python3 build.py                        # build with desktop (default)
+  python3 build.py --no-desktop           # build CLI only (no desktop)
   python3 build.py --layout universal     # universal layout (venv-<platform>/, python-<platform>/)
   python3 build.py /Volumes/U盘           # build into a specific location
   python3 build.py --output DIR
@@ -45,11 +46,6 @@ HERMES_REPO = "https://github.com/NousResearch/hermes-agent.git"
 PYTHON_VERSION = "3.12"
 EXTRAS = "cron,messaging,cli,mcp,web,tts-premium"
 # Node 24 LTS (active LTS until 2026-10, maintenance until 2028-04).
-# Required by hermes-web-ui >= 0.5.x (engines.node >= 23.0.0). We were
-# previously pinned to 22.16.0, which made `npm install hermes-web-ui`
-# silently fall back to v0.4.0 instead of the latest v0.5.x. Even when
-# v0.5.x was force-installed, the server process started but never bound
-# its port — verified empirically.
 NODE_VERSION = "24.15.0"
 
 # ─── ANSI colors ───────────────────────────────────────────────
@@ -382,7 +378,6 @@ def step_nodejs(ctx):
         # Node.js v24+ does ship Windows arm64 prebuilt, but the launcher
         # bat file currently only knows about x64; sticking with x64 keeps
         # behavior identical on ARM hardware (runs under Prism emulation,
-        # which is fast enough for hermes-web-ui).
         url = f"https://nodejs.org/dist/v{NODE_VERSION}/node-v{NODE_VERSION}-win-x64.zip"
     else:
         warn(f"Unsupported system for Node.js fetch: {system}"); return
@@ -391,10 +386,8 @@ def step_nodejs(ctx):
     try:
         download(url, archive)
     except subprocess.CalledProcessError as e:
-        warn(f"Node.js download failed ({e.returncode}); skipping web UI.")
+        warn(f"Node.js download failed ({e.returncode}); skipping.")
         warn(f"  URL: {url}")
-        warn("  hermes-web-ui will not be bundled. You can install it later:")
-        warn("    npm install -g hermes-web-ui")
         return
     node_dir.mkdir(parents=True, exist_ok=True)
 
@@ -413,7 +406,6 @@ def step_nodejs(ctx):
             # to the symlink's own directory. Node.js tarballs ship
             # bin/npm → ../lib/node_modules/npm/bin/npm-cli.js; naive
             # rejection of anything containing '..' loses npm/npx/corepack,
-            # breaking the hermes-web-ui install (GitHub issue #3).
             import posixpath
             safe = []
             for m in t.getmembers():
@@ -463,36 +455,6 @@ def step_nodejs(ctx):
              + "\n  ".join(str(p) for p in missing))
 
     ok(f"Node.js v{NODE_VERSION} ready")
-
-
-def step_webui(ctx):
-    ROOT, system = ctx["ROOT"], ctx["system"]
-    node_dir = ROOT / ctx["node_name"]
-    if system == "Windows":
-        npm = node_dir / "npm.cmd"
-    else:
-        npm = node_dir / "bin" / "npm"
-    if not npm.exists():
-        warn("npm not found; skipping hermes-web-ui install"); return
-
-    # Already installed?
-    if system == "Windows":
-        webui_bin = node_dir / "hermes-web-ui.cmd"
-    else:
-        webui_bin = node_dir / "bin" / "hermes-web-ui"
-    if webui_bin.exists():
-        ok("hermes-web-ui already installed"); return
-
-    info("Installing hermes-web-ui …")
-    env = os.environ.copy()
-    bin_path = node_dir / ("" if system == "Windows" else "bin")
-    env["PATH"] = str(bin_path) + os.pathsep + env.get("PATH", "")
-    try:
-        run([str(npm), "install", "-g", "hermes-web-ui",
-             "--prefix", str(node_dir)], env=env)
-        ok("hermes-web-ui installed")
-    except subprocess.CalledProcessError:
-        warn("hermes-web-ui install failed; launcher will skip it gracefully")
 
 
 # Files that must be *copied verbatim* from the repo into the portable folder.
@@ -658,6 +620,136 @@ def step_readme(ctx):
 
 
 # ═══════════════════════════════════════════════════════════════
+#  DESKTOP DOWNLOAD (pre-built)
+# ═══════════════════════════════════════════════════════════════
+
+# Official pre-built desktop app URLs
+DESKTOP_URLS = {
+    "Darwin": {
+        "arm64": "https://hermes-assets.nousresearch.com/Hermes-Setup.dmg",
+        "x64": "https://hermes-assets.nousresearch.com/Hermes-Setup.dmg",
+    },
+    "Windows": {
+        "x64": "https://hermes-assets.nousresearch.com/Hermes-Setup.exe",
+    },
+    "Linux": {
+        "x64": "https://github.com/NousResearch/hermes-agent/releases/latest/download/Hermes-Linux-x86_64.AppImage",
+        "arm64": "https://github.com/NousResearch/hermes-agent/releases/latest/download/Hermes-Linux-aarch64.AppImage",
+    },
+}
+
+
+def step_desktop(ctx):
+    """Download and package the official pre-built Hermes Desktop app."""
+    ROOT, system, arch = ctx["ROOT"], ctx["system"], ctx["arch"]
+    runtime_dir = ROOT / "runtime" / "desktop"
+    runtime_dir.mkdir(parents=True, exist_ok=True)
+
+    # Get download URL
+    system_urls = DESKTOP_URLS.get(system)
+    if not system_urls:
+        warn(f"No desktop app available for {system}")
+        return
+
+    url = system_urls.get(arch)
+    if not url:
+        warn(f"No desktop app available for {system}/{arch}")
+        return
+
+    info(f"Downloading Hermes Desktop for {system}/{arch} …")
+
+    if system == "Darwin":
+        _download_macos_desktop(url, runtime_dir)
+    elif system == "Windows":
+        _download_windows_desktop(url, runtime_dir)
+    elif system == "Linux":
+        _download_linux_desktop(url, runtime_dir)
+
+    ok("Desktop app ready")
+
+
+def _download_macos_desktop(url, runtime_dir):
+    """Download and extract macOS .dmg"""
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as tmp:
+        dmg_path = Path(tmp) / "Hermes.dmg"
+        download(url, dmg_path)
+
+        info("Extracting from DMG …")
+        mount_point = Path(tmp) / "mount"
+        mount_point.mkdir()
+
+        # Mount DMG
+        run(["hdiutil", "attach", str(dmg_path),
+             "-mountpoint", str(mount_point),
+             "-nobrowse", "-quiet"])
+
+        try:
+            # Find .app bundle
+            for item in mount_point.iterdir():
+                if item.suffix == ".app":
+                    # Place under dist/ matching what launchers expect:
+                    #   runtime/desktop/dist/mac-arm64/Hermes.app  (macOS arm64)
+                    #   runtime/desktop/dist/mac/Hermes.app         (macOS x64)
+                    import platform as _plat
+                    arch = _plat.machine()
+                    if arch == "arm64":
+                        dest_dir = runtime_dir / "dist" / "mac-arm64"
+                    else:
+                        dest_dir = runtime_dir / "dist" / "mac"
+                    dest_dir.mkdir(parents=True, exist_ok=True)
+                    dst = dest_dir / item.name
+                    if dst.exists():
+                        shutil.rmtree(dst)
+                    shutil.copytree(item, dst)
+                    info(f"  Extracted: {dst.relative_to(runtime_dir)}")
+                    break
+        finally:
+            # Unmount DMG
+            run(["hdiutil", "detach", str(mount_point), "-quiet"])
+
+
+def _download_windows_desktop(url, runtime_dir):
+    """Download Windows installer and extract"""
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as tmp:
+        exe_path = Path(tmp) / "Hermes-Setup.exe"
+        download(url, exe_path)
+
+        info("Extracting from installer …")
+        # Use 7z or built-in extraction
+        # For NSIS installer, we can extract with 7z
+        try:
+            run(["7z", "x", str(exe_path), f"-o{tmp}/extracted", "-y"])
+            # Copy extracted files to dist/win-unpacked/ (what launchers expect)
+            extracted = Path(tmp) / "extracted"
+            if extracted.exists():
+                dst = runtime_dir / "dist" / "win-unpacked"
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                if dst.exists():
+                    shutil.rmtree(dst)
+                shutil.copytree(extracted, dst)
+                info("  Extracted to dist/win-unpacked/")
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            warn("7z not found; copying installer as-is")
+            dist_dir = runtime_dir / "dist"
+            dist_dir.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(exe_path, dist_dir / "Hermes-Setup.exe")
+
+
+def _download_linux_desktop(url, runtime_dir):
+    """Download Linux AppImage to dist/ (what launchers expect)"""
+    dist_dir = runtime_dir / "dist"
+    dist_dir.mkdir(parents=True, exist_ok=True)
+    appimage_path = dist_dir / "Hermes.AppImage"
+    download(url, appimage_path)
+    appimage_path.chmod(0o755)
+    info(f"  Downloaded: dist/{appimage_path.name}")
+
+
+# ═══════════════════════════════════════════════════════════════
 #  MAIN
 # ═══════════════════════════════════════════════════════════════
 
@@ -668,10 +760,13 @@ STEPS = [
     ("Creating venv + deps",         step_venv),
     ("Setting up data/",             step_data),
     ("Downloading Node.js",          step_nodejs),
-    ("Installing hermes-web-ui",     step_webui),
     ("Copying launchers",            step_launchers),
     ("Writing README",               step_readme),
     ("Cleaning",                     step_cleanup),
+]
+
+STEPS_DESKTOP = [
+    ("Building Desktop app",         step_desktop),
 ]
 
 
@@ -683,6 +778,8 @@ def parse_args():
                         "so multiple builds can be merged into one USB package.")
     p.add_argument("--output", "-o", default=None,
                    help="Output directory (default: dist/HermesPortable)")
+    p.add_argument("--no-desktop", action="store_true",
+                   help="Skip building the official Hermes Desktop app (desktop is built by default)")
     p.add_argument("positional", nargs="?", default=None,
                    help="Alias for --output (kept for backwards compatibility)")
     return p.parse_args()
@@ -725,10 +822,16 @@ def main():
 
     info(f"Output : {ROOT}")
     info(f"Layout : {args.layout}")
+    info(f"Desktop: {'no' if args.no_desktop else 'yes (default)'}")
     print()
 
-    for i, (desc, fn) in enumerate(STEPS, 1):
-        print(f"{B}[{i}/{len(STEPS)}] {desc}{X}")
+    # Combine steps; desktop is built by default unless --no-desktop
+    all_steps = STEPS[:]
+    if not args.no_desktop:
+        all_steps.extend(STEPS_DESKTOP)
+
+    for i, (desc, fn) in enumerate(all_steps, 1):
+        print(f"{B}[{i}/{len(all_steps)}] {desc}{X}")
         try:
             fn(ctx)
         except subprocess.CalledProcessError as e:
@@ -745,6 +848,8 @@ def main():
     print(f"{G}{B}  ✓ Build complete{X}")
     print(f"  Location: {C}{ROOT}{X}")
     print(f"  Size    : {C}{total_bytes / 1e6:.0f} MB{X}")
+    if not args.no_desktop:
+        print(f"  Desktop : {C}runtime/desktop/{X}")
     print(f"  Launchers: {C}Hermes.command / Hermes.sh / Hermes.bat{X}\n")
 
 
