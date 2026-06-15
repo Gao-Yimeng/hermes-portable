@@ -1011,21 +1011,21 @@ HTML_PAGE = r"""<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hermes Portable — 配置</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23041c1c'/%3E%3Cg fill='none' stroke='%23ffe6cb' stroke-width='4.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M 28 32 L 42 60 M 56 32 L 42 60 L 36 78'/%3E%3Cpath d='M 64 32 L 64 60 Q 64 72 76 72 L 76 32'/%3E%3C/g%3E%3C/svg%3E">
-<meta name="theme-color" content="#041c1c" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#f5f0e8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#edff45" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#edff45" media="(prefers-color-scheme: light)">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <style>
   /* Google Fonts removed for China compatibility */
 
   :root {
-    --bg: #041c1c;
-    --card: #062424;
-    --secondary: #0a2e2e;
-    --muted: #083030;
-    --fg: #ffe6cb;
-    --fg-muted: #8aaa9a;
-    --border: #ffe6cb26;
-    --accent: #ffe6cb;
+    --bg: #170d02;
+    --card: #1a1208;
+    --secondary: #1e1508;
+    --muted: #1c1409;
+    --fg: #f5f5f5;
+    --fg-muted: #9a968e;
+    --border: #f5f5f526;
+    --accent: #f5f5f5;
     --emerald: oklch(0.765 0.177 163.223);
     --emerald-dim: oklch(0.696 0.17 162.48);
     --blue: oklch(0.707 0.165 254.624);
@@ -1043,27 +1043,27 @@ HTML_PAGE = r"""<!DOCTYPE html>
   }
   [data-theme="light"] {
     --bg: #f5f0e8;
-    --card: #ebe5db;
-    --secondary: #ebe5db;
-    --muted: #d8d2c6;
+    --card: #f5f0e8;
+    --secondary: #f5f0e8;
+    --muted: #c8c4bb;
     --fg: #3d3a35;
-    --fg-muted: #736e63;
+    --fg-muted: #7a7670;
     --border: rgba(61,58,53,0.14);
-    --accent: #02966a;
-    --emerald: #02966a;
+    --accent: #d4e600;
+    --emerald: #d4e600;
     --emerald-dim: #028a60;
   }
   @media (prefers-color-scheme: light) {
     :root:not([data-theme="dark"]) {
       --bg: #f5f0e8;
-      --card: #ebe5db;
-      --secondary: #ebe5db;
-      --muted: #d8d2c6;
+      --card: #f5f0e8;
+      --secondary: #f5f0e8;
+      --muted: #c8c4bb;
       --fg: #3d3a35;
-      --fg-muted: #736e63;
+      --fg-muted: #7a7670;
       --border: rgba(61,58,53,0.14);
-      --accent: #02966a;
-      --emerald: #02966a;
+      --accent: #d4e600;
+      --emerald: #d4e600;
       --emerald-dim: #028a60;
     }
   }
@@ -1104,7 +1104,7 @@ HTML_PAGE = r"""<!DOCTYPE html>
     color: var(--fg);
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
-    scrollbar-color: #ffe6cb33 transparent;
+    scrollbar-color: #f5f5f533 transparent;
     position: relative;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -1479,8 +1479,8 @@ HTML_PAGE = r"""<!DOCTYPE html>
   /* Scrollbar */
   ::-webkit-scrollbar { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: #ffe6cb26; border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: #ffe6cb40; }
+  ::-webkit-scrollbar-thumb { background: #f5f5f526; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #f5f5f540; }
 
   /* Selection */
   ::selection { background: var(--fg); color: var(--bg); }
@@ -1645,7 +1645,7 @@ HTML_PAGE = r"""<!DOCTYPE html>
   .tab:hover { color: var(--fg); }
   .tab.active {
     color: var(--accent) !important;
-    background: rgba(0,255,200,0.04) !important;
+    background: rgba(237,255,69,0.04) !important;
   }
 
   .tab-panel { padding: 24px 0; }
@@ -1685,10 +1685,10 @@ HTML_PAGE = r"""<!DOCTYPE html>
     transition: background 0.2s, color 0.2s;
   }
   .provider-btn:hover {
-    background: rgba(255,230,203,0.04) !important;
+    background: rgba(245,240,232,0.04) !important;
   }
   .provider-btn.active {
-    background: rgba(0,255,200,0.06) !important;
+    background: rgba(237,255,69,0.06) !important;
     color: var(--accent) !important;
   }
 
@@ -1701,7 +1701,7 @@ HTML_PAGE = r"""<!DOCTYPE html>
   }
   .channel-card:hover {
     border-color: var(--accent) !important;
-    background: rgba(255,230,203,0.02) !important;
+    background: rgba(245,240,232,0.02) !important;
   }
   .channel-name {
     font-family: var(--font-serif);
@@ -1954,7 +1954,7 @@ HTML_PAGE = r"""<!DOCTYPE html>
           <label>默认模型</label>
           <select id="modelSelect"></select>
           <div class="model-preview" id="modelPreview">current: —</div>
-          <div id="catalogStatus" style="margin-top:4px;font-family:var(--font-mono);font-size:9px;color:var(--fg-muted,#8aaa9a);letter-spacing:0.04em;display:none"></div>
+          <div id="catalogStatus" style="margin-top:4px;font-family:var(--font-mono);font-size:9px;color:var(--fg-muted,#9a968e);letter-spacing:0.04em;display:none"></div>
         </div>
         <div class="row" style="margin-top:10px">
           <div class="field">
@@ -2048,7 +2048,7 @@ HTML_PAGE = r"""<!DOCTYPE html>
           <button type="button" class="btn" style="flex:1" onclick="refreshLogs()">刷新日志</button>
           <button type="button" class="btn" style="flex:1" onclick="clearLogView()">清空显示</button>
         </div>
-        <pre id="logContent" style="background:#041c1c;color:#ffe6cb;padding:12px;border-radius:8px;font-family:var(--font-mono);font-size:11px;line-height:1.6;max-height:280px;overflow:auto;margin:0;white-space:pre-wrap;word-break:break-all;">点击「刷新日志」查看最近 200 行</pre>
+        <pre id="logContent" style="background:#170d02;color:#f5f5f5;padding:12px;border-radius:8px;font-family:var(--font-mono);font-size:11px;line-height:1.6;max-height:280px;overflow:auto;margin:0;white-space:pre-wrap;word-break:break-all;">点击「刷新日志」查看最近 200 行</pre>
       </div>
     </div>
 
@@ -2269,11 +2269,11 @@ function restoreConfig() {
       if (data.catalog_updated_at) {
         cs.style.display = 'block';
         cs.textContent = '◉ 模型清单 · 上游同步于 ' + data.catalog_updated_at.slice(0,10);
-        cs.style.color = 'var(--emerald,#02966a)';
+        cs.style.color = 'var(--emerald,#d4e600)';
       } else {
         cs.style.display = 'block';
         cs.textContent = '◌ 模型清单 · 离线（使用内置快照）';
-        cs.style.color = 'var(--fg-muted,#8aaa9a)';
+        cs.style.color = 'var(--fg-muted,#9a968e)';
       }
     }
   }).catch(() => {});
@@ -2459,7 +2459,7 @@ function viewEnv() {
     const lines = Object.keys(env).map(k => k + '=' + (env[k].length > 20 ? env[k].slice(0,8)+'...'+env[k].slice(-4) : env[k]));
     const w = window.open('', '_blank');
     if (w) {
-      w.document.write('<pre style="font-family:monospace;padding:20px;background:#041c1c;color:#ffe6cb;font-size:13px;line-height:1.6;">'+lines.join('\n')+'</pre>');
+      w.document.write('<pre style="font-family:monospace;padding:20px;background:#170d02;color:#f5f5f5;font-size:13px;line-height:1.6;">'+lines.join('\n')+'</pre>');
       w.document.title = 'Hermes .env';
     } else {
       toast('请允许弹窗', 'error');
@@ -2550,13 +2550,13 @@ function _wechatModal() {
   modal.id = 'wechatModal';
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(4,28,28,0.92);z-index:8000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);';
   modal.innerHTML = `
-    <div style="background:var(--card,#062424);border:1px solid var(--border,#ffe6cb26);padding:28px 24px;max-width:380px;width:90%;text-align:center;font-family:var(--font-sans);">
-      <h3 style="font-family:var(--font-serif);font-size:1.4rem;margin-bottom:8px;color:var(--fg,#ffe6cb);letter-spacing:0;">扫码登录微信</h3>
-      <p id="wechatModalHint" style="font-family:var(--font-mono);font-size:11px;color:var(--fg-muted,#8aaa9a);letter-spacing:0.04em;margin-bottom:16px;">使用微信扫描下方二维码，完成手机端确认即可</p>
+    <div style="background:var(--card,#1a1208);border:1px solid var(--border,#f5f5f526);padding:28px 24px;max-width:380px;width:90%;text-align:center;font-family:var(--font-sans);">
+      <h3 style="font-family:var(--font-serif);font-size:1.4rem;margin-bottom:8px;color:var(--fg,#f5f5f5);letter-spacing:0;">扫码登录微信</h3>
+      <p id="wechatModalHint" style="font-family:var(--font-mono);font-size:11px;color:var(--fg-muted,#9a968e);letter-spacing:0.04em;margin-bottom:16px;">使用微信扫描下方二维码，完成手机端确认即可</p>
       <div id="wechatQrBox" style="background:white;padding:12px;min-width:240px;min-height:240px;display:flex;align-items:center;justify-content:center;">
         <span style="color:#666;font-family:monospace;font-size:12px;">加载中…</span>
       </div>
-      <div id="wechatStatusLine" style="margin-top:14px;font-family:var(--font-mono);font-size:11px;color:var(--fg-muted,#8aaa9a);min-height:1.4em;letter-spacing:0.04em;"></div>
+      <div id="wechatStatusLine" style="margin-top:14px;font-family:var(--font-mono);font-size:11px;color:var(--fg-muted,#9a968e);min-height:1.4em;letter-spacing:0.04em;"></div>
       <div style="display:flex;gap:8px;margin-top:18px;">
         <button type="button" class="btn" style="flex:1" onclick="cancelWeChatLogin()">关闭</button>
         <button type="button" class="btn btn-launch" style="flex:1" id="wechatRetryBtn" onclick="startWeChatLogin()" disabled>重试</button>
@@ -2570,7 +2570,7 @@ function _setWechatStatus(text, isError) {
   const el = document.getElementById('wechatStatusLine');
   if (!el) return;
   el.textContent = text || '';
-  el.style.color = isError ? 'var(--destructive,#fb2c36)' : 'var(--fg-muted,#8aaa9a)';
+  el.style.color = isError ? 'var(--destructive,#fb2c36)' : 'var(--fg-muted,#9a968e)';
 }
 
 function _renderWechatQr(dataUrl, rawContent) {
@@ -2725,7 +2725,7 @@ function cancelWeChatLogin(closeModal) {
         overlay = document.createElement('div');
         overlay.id = 'disconnectOverlay';
         overlay.style.cssText = 'position:fixed;inset:0;background:rgba(4,28,28,0.92);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);';
-        overlay.innerHTML = '<div style="background:#062424;padding:32px 40px;border-radius:14px;text-align:center;border:1px solid rgba(0,255,200,0.15);max-width:360px;"><h3 style="color:#ffe6cb;margin-bottom:8px;font-size:1em;">连接已断开</h3><p style="color:#8aaa9a;font-size:0.85em;line-height:1.6;">Hermes 进程已停止。请重新双击启动器。</p></div>';
+        overlay.innerHTML = '<div style="background:#1a1208;padding:32px 40px;border-radius:14px;text-align:center;border:1px solid rgba(237,255,69,0.15);max-width:360px;"><h3 style="color:#f5f5f5;margin-bottom:8px;font-size:1em;">连接已断开</h3><p style="color:#9a968e;font-size:0.85em;line-height:1.6;">Hermes 进程已停止。请重新双击启动器。</p></div>';
         document.body.appendChild(overlay);
       }
     }
