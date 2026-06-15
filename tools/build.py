@@ -43,6 +43,7 @@ if sys.platform == "win32":
 
 # ─── Config ────────────────────────────────────────────────────
 HERMES_REPO = "https://github.com/NousResearch/hermes-agent.git"
+HERMES_TAG = "v2026.6.5"  # v0.16.0 — The Surface Release
 PYTHON_VERSION = "3.12"
 EXTRAS = "cron,messaging,cli,mcp,web,tts-premium"
 # Node 24 LTS (active LTS until 2026-10, maintenance until 2028-04).
@@ -271,7 +272,7 @@ def step_hermes(ctx):
 
     info("Cloning hermes-agent from GitHub …")
     try:
-        run(["git", "clone", "--depth", "1", HERMES_REPO, str(src)])
+        run(["git", "clone", "--depth", "1", "--branch", HERMES_TAG, HERMES_REPO, str(src)])
         _clean_hermes_src(src)
         ok("hermes-agent cloned")
     except subprocess.CalledProcessError:
