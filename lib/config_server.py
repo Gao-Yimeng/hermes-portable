@@ -369,6 +369,40 @@ PROVIDERS = [
     {"id": "copilot",     "name": "GitHub Copilot",  "env": "GITHUB_TOKEN",       "models": [
         "gpt-4o","gpt-4o-mini","claude-sonnet-4","o3-mini",
     ]},
+    {"id": "together",    "name": "Together AI",      "env": "TOGETHER_API_KEY",      "models": [
+        "meta-llama/Llama-4-Scout-17B-16E-Instruct","meta-llama/Llama-4-Maverick-17B-128E-Instruct",
+        "deepseek-ai/DeepSeek-V3.2","Qwen/Qwen3-235B-A22B","mistralai/Mistral-Small-3.2-24B-Instruct",
+    ]},
+    {"id": "fireworks",   "name": "Fireworks AI",    "env": "FIREWORKS_API_KEY",     "models": [
+        "accounts/fireworks/models/llama4-scout-instruct-basic","accounts/fireworks/models/deepseek-v4-pro",
+        "accounts/fireworks/models/qwen3-235b-a22b","accounts/fireworks/models/mixtral-8x22b-instruct",
+    ]},
+    {"id": "cohere",      "name": "Cohere",          "env": "COHERE_API_KEY",        "models": [
+        "command-a","command-r-plus","command-r","command-light",
+    ]},
+    {"id": "replicate",   "name": "Replicate",       "env": "REPLICATE_API_TOKEN",   "models": [
+        "meta/llama-4-scout-17b-16e-instruct","deepseek-ai/deepseek-v4-pro",
+        "mistralai/mistral-small-3.2-24b-instruct",
+    ]},
+    {"id": "baidu",       "name": "百度文心",         "env": "BAIDU_API_KEY",          "models": [
+        "ernie-4.5-8k","ernie-4.0-8k","ernie-3.5-8k","ernie-speed-128k",
+    ]},
+    {"id": "baichuan",    "name": "百川智能",         "env": "BAICHUAN_API_KEY",       "models": [
+        "Baichuan4","Baichuan3-Turbo","Baichuan2-Turbo",
+    ]},
+    {"id": "yi",          "name": "零一万物",         "env": "YI_API_KEY",             "models": [
+        "yi-large","yi-medium","yi-spark","yi-lightning",
+    ]},
+    {"id": "sambanova",   "name": "SambaNova",       "env": "SAMBANOVA_API_KEY",      "models": [
+        "Meta-Llama-3.3-70B-Instruct","DeepSeek-V3-0324","Qwen3-32B",
+    ]},
+    {"id": "cloudflare",  "name": "Cloudflare AI",   "env": "CLOUDFLARE_API_TOKEN",   "models": [
+        "@cf/meta/llama-3.3-70b-instruct-fp8","@cf/deepseek-ai/deepseek-v3","@cf/qwen/qwen3-32b",
+    ]},
+    {"id": "siliconflow", "name": "硅基流动",         "env": "SILICONFLOW_API_KEY",    "models": [
+        "deepseek-ai/DeepSeek-V4-Pro","Qwen/Qwen3-235B-A22B",
+        "meta-llama/Llama-4-Scout-17B-Instruct","Pro/deepseek-ai/DeepSeek-R1",
+    ]},
     {"id": "custom",      "name": "自定义 / 中转站", "env": "CUSTOM_API_KEY",
      "base_url_env": "CUSTOM_BASE_URL",
      "custom_model": True,
