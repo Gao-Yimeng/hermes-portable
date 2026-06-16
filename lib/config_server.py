@@ -348,6 +348,27 @@ PROVIDERS = [
     {"id": "perplexity",  "name": "Perplexity",     "env": "PERPLEXITY_API_KEY", "models": [
         "sonar","sonar-pro","sonar-reasoning","sonar-reasoning-pro","sonar-deep-research",
     ]},
+    {"id": "huggingface", "name": "HuggingFace",    "env": "HF_TOKEN",           "models": [
+        "Qwen/Qwen3.5-72B-Instruct","deepseek-ai/DeepSeek-V3.2",
+        "meta-llama/Llama-4-Scout-17B-16E-Instruct","mistralai/Mistral-Small-3.2-24B-Instruct",
+    ]},
+    {"id": "nvidia",      "name": "NVIDIA NIM",     "env": "NVIDIA_API_KEY",     "models": [
+        "nvidia/llama-3.3-nemotron-super-49b-v1","nvidia/llama-3.1-nemotron-ultra-253b-v1",
+        "meta/llama-4-maverick-17b-128e-instruct","deepseek-ai/deepseek-r1",
+    ]},
+    {"id": "stepfun",     "name": "StepFun 阶跃",   "env": "STEPFUN_API_KEY",    "models": [
+        "step-3.5-flash","step-3.5","step-2-16k","step-1v-8k",
+    ]},
+    {"id": "novita",      "name": "NovitaAI",       "env": "NOVITA_API_KEY",     "models": [
+        "deepseek/deepseek-v4-pro","meta/llama-4-maverick-17b-128e-instruct",
+        "qwen/qwen3-32b","mistralai/mistral-small-3.2-24b-instruct",
+    ]},
+    {"id": "ollama",      "name": "Ollama Cloud",   "env": "OLLAMA_API_KEY",     "models": [
+        "llama3.3","qwen3","deepseek-v4","mistral-small",
+    ]},
+    {"id": "copilot",     "name": "GitHub Copilot",  "env": "GITHUB_TOKEN",       "models": [
+        "gpt-4o","gpt-4o-mini","claude-sonnet-4","o3-mini",
+    ]},
     {"id": "custom",      "name": "自定义 / 中转站", "env": "CUSTOM_API_KEY",
      "base_url_env": "CUSTOM_BASE_URL",
      "custom_model": True,
